@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Profile – Peer Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/shared.css"/>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span></div></div>
+<script src="/js/api.js"></script>
+<script>
+pb.requireAuth();
+const me = pb.getUser();
+const params = new URLSearchParams(location.search);
+const profileId = params.get('id') ? Number(params.get('id')) : me?.id;
+const isSelf = profileId === me?.id;
+
+let profile = null, editMode = false;
+let editName='', editDept='', editBio='', editYear='', editRole='';
+let showRateModal = false, rateScore = 5, rateComment = '';
+let showReportModal = false, reportReason = 'Spam';
+const REPORT_REASONS = ['Spam', 'Harassment', 'Inappropriate', 'Misinformation'];
+
+function ic(n,sz=18,col='currentColor',sw=1.7){const p={user:`<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>`,edit:`<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>`,arrow:`<path d="M5 12h14"/><path d="m13 5 7 7-7 7"/>`,message:`<path d="M21 12a8 8 0 0 1-8 8 8 8 0 0 1-3.5-.8L4 21l1.3-4.5A8 8 0 0 1 13 4a8 8 0 0 1 8 8Z"/>`,star:`<path d="M12 2l2.9 6.1 6.6.9-4.8 4.7 1.1 6.6L12 17l-5.9 3.3 1.1-6.6L2.5 9l6.6-.9L12 2z"/>`,check:`<path d="m5 13 4 4 10-10"/>`,close:`<path d="M6 6l12 12"/><path d="M18 6 6 18"/>`,home:`<path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/>`,save:`<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>`};
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${p[n]||''}</svg>`;}
+function ava(name='?',size=80,imgUrl=''){if(imgUrl)return`<div style="width:${size}px;height:${size}px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid #E4EAF2"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover"/></div>`;const bgs=[['#fde8f0','#f5b8ce'],['#c7d9ff','#8ea8e8'],['#d4f1e3','#7fc9a4'],['#ffe4cc','#e8a76f'],['#e9d7fb','#b48de0'],['#fff4b8','#e6c84d']];const parts=(name||'?').split(' ');const init=(parts[0][0]+(parts[1]?.[0]||'')).toUpperCase();let h=0;for(let i=0;i<(name||'').length;i++)h=(h*31+name.charCodeAt(i))|0;const[bg,fg]=bgs[Math.abs(h)%bgs.length];return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,${bg},${fg}33);display:inline-flex;align-items:center;justify-content:center;font-size:${size*0.38}px;font-weight:700;color:${fg};flex-shrink:0">${init}</div>`;}
+function roleLabel(r){return{freshman:'Freshman',sophomore:'Sophomore',junior:'Junior',senior:'Senior',mentor:'Mentor',lead_mentor:'Lead Mentor',admin:'Admin'}[r]||r;}
+function tagTone(tag){if(tag==='Academic Help')return'blush';if(tag==='Career & Internships')return'lav';if(tag==='Resources')return'mint';return'peach';}
+
+async function loadProfile() {
+  try {
+    profile = await pb.get(`/users/${profileId}`);
+    editName = profile.name; editDept = profile.department||''; editBio = profile.bio||'';
+    editYear = profile.graduation_year||''; editRole = profile.role;
+    render();
+  } catch(e) { showToast('Failed to load profile'); }
+}
+
+async function saveProfile() {
+  try {
+    const updated = await pb.put('/users/me', { name:editName, department:editDept, graduation_year:editYear||null, bio:editBio, role:editRole });
+    pb.setAuth(pb.getToken(), updated);
+    profile = { ...profile, ...updated };
+    editMode = false;
+    render();
+    showToast('Profile updated!');
+  } catch(e) { showToast('Failed to save: '+e.message); }
+}
+
+async function submitRating() {
+  try {
+    await pb.post(`/users/${profileId}/rate`, { score: rateScore, comment: rateComment });
+    showRateModal = false; rateComment = '';
+    await loadProfile();
+    showToast('Rating submitted!');
+  } catch(e) { showToast(e.message); }
+}
+
+async function submitProfileReport() {
+  try {
+    await pb.post('/reports', { target_type: 'user', target_id: profileId, reason: reportReason });
+    showReportModal = false;
+    render();
+    showToast('Report submitted. Thank you for keeping Peer Bridge safe.');
+  } catch(e) { showToast(e.message || 'Failed to submit report'); }
+}
+
+function verifiedMentorBadge(p) {
+  if (!['mentor','lead_mentor'].includes(p.role)) return '';
+  if (p.is_under_review) return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#FEF3C7;color:#92400E;display:inline-flex;align-items:center;gap:4px">⚠ Under Review</span>';
+  if ((p.rating||0)>=4.0 && (p.rating_count||0)>=10) return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#D1FAE5;color:#065F46;display:inline-flex;align-items:center;gap:4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#065F46" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Verified Mentor</span>';
+  return '';
+}
+
+function render() {
+  if (!profile) return;
+  const p = profile;
+  const isMentor = ['mentor','lead_mentor'].includes(p.role);
+  document.getElementById('root').innerHTML = `
+  <div class="with-sidebar">
+    ${sidebarHTML('profile')}
+    <div class="snav-content">
+  <div class="page-shell" style="max-width:960px">
+
+    ${p.is_locked ? `
+    <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span style="font-size:14px;font-weight:600;color:#991B1B;">This account has been suspended.</span>
+    </div>` : ''}
+
+    <section class="page-hero" style="margin-bottom:24px">
+      <div style="position:relative;z-index:1">
+        <div class="tag tag-lav" style="margin-bottom:12px">${isSelf?'Your space':'Community profile'}</div>
+        <h1 class="section-title" style="font-size:32px">${isSelf?'Profile':'Mentor Profile'}</h1>
+        <p class="section-subtitle">A cleaner white-and-blue profile experience aligned with the rest of Peer Bridge.</p>
+      </div>
+    </section>
+
+    <!-- Profile header -->
+    <div class="card" style="padding:32px;margin-bottom:24px">
+      <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
+        ${ava(p.name, 80, p.profile_image||'')}
+        <div style="flex:1;min-width:200px">
+          ${editMode ? `
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <input class="input" id="e-name" value="${editName}" placeholder="Full name" oninput="editName=this.value" style="font-size:16px;padding:10px 14px"/>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <select class="input" id="e-dept" style="padding:10px 14px;font-size:14px" onchange="editDept=this.value">
+                ${['','SEECS','NBS','SMME','CEME','SCME','S3H','ASAB','CAE'].map(d=>`<option value="${d}" ${editDept===d?'selected':''}>${d||'Department'}</option>`).join('')}
+              </select>
+              <select class="input" id="e-role" style="padding:10px 14px;font-size:14px" onchange="editRole=this.value">
+                ${['freshman','sophomore','junior','senior','mentor'].map(r=>`<option value="${r}" ${editRole===r?'selected':''}>${roleLabel(r)}</option>`).join('')}
+              </select>
+            </div>
+            <input class="input" id="e-year" type="number" value="${editYear}" placeholder="Graduation year" oninput="editYear=this.value" style="padding:10px 14px;font-size:14px"/>
+            <textarea class="input" id="e-bio" rows="3" placeholder="Short bio…" oninput="editBio=this.value" style="resize:vertical">${editBio}</textarea>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="saveProfile()" style="padding:10px 18px">${ic('check',15,'white')} Save</button>
+              <button class="btn btn-ghost" onclick="editMode=false;render()" style="padding:10px 18px">Cancel</button>
+              <button class="btn btn-ghost" onclick="confirmDeleteAccount()" style="padding:10px 18px;color:#DC2626;border-color:#FECACA;margin-left:auto">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                Delete account
+              </button>
+            </div>
+          </div>` : `
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                <h1 style="margin:0;font-size:26px;font-weight:700">${p.name}</h1>
+                ${verifiedMentorBadge(p)}
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                <span class="tag tag-lav">${roleLabel(p.role)}</span>
+                ${p.department?`<span style="color:var(--ink-2);font-size:13px">${p.department}</span>`:''}
+                ${p.graduation_year?`<span style="color:var(--ink-3);font-size:13px">'${String(p.graduation_year).slice(-2)}</span>`:''}
+                ${p.is_online?`<span style="font-size:11.5px;color:#2a5b46;display:flex;align-items:center;gap:4px"><span class="dot" style="background:#7fc9a4"></span>Online</span>`:''}
+              </div>
+              ${isMentor?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="display:flex;gap:2px">${Array.from({length:5},(_,i)=>`<svg width="14" height="14" viewBox="0 0 24 24" fill="${i<Math.round(p.rating||0)?'#e6c84d':'none'}" stroke="#e6c84d" stroke-width="2"><path d="M12 2l2.9 6.1 6.6.9-4.8 4.7 1.1 6.6L12 17l-5.9 3.3 1.1-6.6L2.5 9l6.6-.9L12 2z"/></svg>`).join('')}</div>
+                <span style="font-size:13px;font-weight:600">${p.rating||'0.0'}</span>
+                <span style="font-size:12px;color:var(--ink-3)">(${p.rating_count||0} ratings · ${p.sessions_count||0} sessions)</span>
+              </div>`:''}
+              ${p.bio?`<p style="margin:0;font-size:14px;color:var(--ink-2);line-height:1.55;max-width:500px">${p.bio}</p>`:'<p style="margin:0;font-size:13px;color:var(--ink-3);font-style:italic">No bio yet.</p>'}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              ${isSelf?`<button class="btn btn-ghost" onclick="editMode=true;render()" style="padding:10px 16px;font-size:13.5px">${ic('edit',14)} Edit profile</button>`:''}
+              ${!isSelf?`<button class="btn btn-primary" onclick="location.href='/messages.html?to=${p.id}&name=${encodeURIComponent(p.name)}'" style="padding:10px 16px;font-size:13.5px">${ic('message',14,'white')} Message</button>`:''}
+              ${!isSelf&&isMentor&&!p.is_locked?`<button class="btn btn-ghost" onclick="showRateModal=true;render()" style="padding:10px 16px;font-size:13.5px">${ic('star',14)} Rate mentor</button>`:''}
+              ${!isSelf?`<button class="btn btn-ghost" onclick="showReportModal=true;render()" style="padding:10px 16px;font-size:13.5px;color:#DC2626;border-color:#FECACA;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M10.5 10.677a2 2 0 002.823 2.823"/><path d="M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.35M12 6c3.972 0 7.071 3.009 9 6a16.09 16.09 0 01-1.432 1.97"/></svg>
+                Report this profile
+              </button>`:''}
+            </div>
+          </div>`}
+        </div>
+      </div>
+    </div>
+
+    <!-- Posts -->
+    <div class="card" style="padding:22px">
+      <div class="serif" style="font-size:22px;margin-bottom:16px">${isSelf?'Your posts':'Posts by '+p.name}</div>
+      ${(p.posts||[]).length===0?`<div class="empty-state">${ic('home',32,'var(--ink-3)',1.2)}<p>No posts yet</p></div>`:
+        (p.posts||[]).map(post=> post.is_hidden ? `
+          <div style="padding:16px 0;border-top:1px solid var(--line);">
+            <p style="font-size:13.5px;color:var(--ink-3);font-style:italic;">This post has been flagged by the community.</p>
+          </div>` : `
+          <div style="padding:16px 0;border-top:1px solid var(--line);cursor:pointer" onclick="location.href='/feed.html'">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+              <span class="tag tag-${tagTone(post.tag)}">${post.tag}</span>
+              <span style="font-size:12px;color:var(--ink-3)">${timeAgo(post.created_at)}</span>
+            </div>
+            <div class="serif" style="font-size:18px;font-weight:400;line-height:1.3;margin-bottom:6px">${post.title}</div>
+            ${post.body?`<p style="margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${post.body}</p>`:''}
+            <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--ink-3)">
+              <span>♥ ${post.likes_count}</span><span>💬 ${post.comments_count}</span><span>🔖 ${post.bookmarks_count}</span>
+            </div>
+          </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Rate modal -->
+  ${showRateModal?`
+  <div style="position:fixed;inset:0;z-index:50;background:rgba(26,31,58,.25);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px" id="rate-overlay" onclick="if(event.target.id==='rate-overlay'){showRateModal=false;render()}">
+    <div class="card" style="width:100%;max-width:420px;padding:24px;box-shadow:var(--shadow-lg)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:600">Rate ${p.name}</div>
+        <button class="chip-btn" onclick="showRateModal=false;render()" style="padding:6px">${ic('close',14)}</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:center">
+        ${[1,2,3,4,5].map(n=>`
+          <button onclick="rateScore=${n};document.querySelectorAll('.star-btn').forEach((s,i)=>{s.style.color=i<${n}?'#e6c84d':'var(--ink-3)'})" class="star-btn"
+            style="font-size:28px;padding:4px;color:${n<=rateScore?'#e6c84d':'var(--ink-3)'};background:none;border:none;cursor:pointer">★</button>`).join('')}
+      </div>
+      <textarea class="input" rows="3" placeholder="Leave a comment (optional)…" oninput="rateComment=this.value" style="margin-bottom:14px;resize:vertical">${rateComment}</textarea>
+      <button class="btn btn-primary" onclick="submitRating()" style="width:100%;padding:12px">${ic('check',14,'white')} Submit rating</button>
+    </div>
+  </div>`:''}
+
+  <!-- Report profile modal -->
+  ${showReportModal?`
+  <div style="position:fixed;inset:0;z-index:50;background:rgba(26,31,58,.25);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px" id="report-overlay" onclick="if(event.target.id==='report-overlay'){showReportModal=false;render()}">
+    <div class="card" style="width:100%;max-width:420px;padding:24px;box-shadow:var(--shadow-lg)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:600">Report this profile</div>
+        <button class="chip-btn" onclick="showReportModal=false;render()" style="padding:6px">${ic('close',14)}</button>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-2);margin-bottom:14px">Why are you reporting ${p.name}?</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+        ${REPORT_REASONS.map(r=>`
+          <button onclick="reportReason='${r}';render()"
+            style="padding:8px 14px;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid ${r===reportReason?'#0D1B2A':'var(--line)'};background:${r===reportReason?'#0D1B2A':'transparent'};color:${r===reportReason?'white':'var(--ink-2)'};transition:.15s;">
+            ${r}
+          </button>`).join('')}
+      </div>
+      <button class="btn btn-primary" onclick="submitProfileReport()" style="width:100%;padding:12px;background:#DC2626;border-color:#DC2626">Submit report</button>
+    </div>
+  </div>`:''}
+  </div></div>`;
+}
+
+function confirmDeleteAccount() {
+  if (!confirm('Are you sure you want to delete your account? This cannot be undone — all your posts and data will be permanently removed.')) return;
+  deleteAccount();
+}
+
+async function deleteAccount() {
+  try {
+    await pb.del('/users/me');
+    pb.clearAuth();
+    window.location.href = '/index.html';
+  } catch(e) { showToast('Failed to delete account: ' + e.message); }
+}
+
+loadProfile();
+</script>
+</body>
+</html>

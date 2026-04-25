@@ -1,0 +1,3 @@
+echo "node_modules/
+.env
+uploads/" > Peer_Bridge_Project/backend/.gitignore

@@ -1,0 +1,49 @@
+<!-- layout.html: Shared layout for Peer Bridge pages -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{PAGE_TITLE}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/shared.css" />
+  <style>
+    /* Add any extra shared styles here if needed */
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <a href="/feed.html" class="logo-link">
+          <span class="logo-wm">Peer Bridge</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/feed.html" class="nav-item">Home</a>
+        <a href="/mentors.html" class="nav-item">Mentors</a>
+        <a href="/resources.html" class="nav-item">Resources</a>
+        <a href="/events.html" class="nav-item">Events</a>
+        <a href="/messages.html" class="nav-item">Messages</a>
+        <a href="/saved.html" class="nav-item">Saved</a>
+      </nav>
+      <div class="sidebar-profile">
+        <!-- User info will be injected by JS -->
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      {{MAIN_CONTENT}}
+    </main>
+
+    <!-- Right Panel -->
+    <aside class="right-panel">
+      {{RIGHT_PANEL}}
+    </aside>
+  </div>
+</body>
+</html>

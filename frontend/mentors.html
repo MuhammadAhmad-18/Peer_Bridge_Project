@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mentors - Peer Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/shared.css"/>
+<style>
+.mentor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;margin-top:22px}
+.mentor-card{display:flex;flex-direction:column;gap:16px;padding:22px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s,border-color .15s;cursor:pointer}
+.mentor-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--blue-mid)}
+.mentor-card-top{display:flex;gap:14px;align-items:flex-start}
+.mentor-meta{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.mentor-bio{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mentor-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:14px;border-top:1px solid var(--line);margin-top:auto}
+.mentor-actions-right{display:flex;gap:8px;flex-wrap:wrap}
+.stars{display:inline-flex;gap:2px}
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.search-shell{display:flex;align-items:center;gap:10px;flex:1;min-width:260px;padding:12px 14px;background:#fff;border:1.5px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.search-shell:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px var(--accent-soft)}
+.search-shell input{flex:1;border:0;outline:0;background:transparent;font-size:13.5px}
+.verified-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:var(--mint);color:var(--mint-ink);font-size:10.5px;font-weight:700}
+@media(max-width:760px){
+  .page-shell{padding:20px 16px 32px}
+  .page-nav-inner{padding:14px 16px}
+  .toolbar{flex-direction:column;align-items:stretch}
+  .mentor-actions{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="/js/api.js"></script>
+<script>
+pb.requireAuth();
+const me = pb.getUser();
+
+let mentors = [], searchVal = '', deptFilter = '';
+let requestedIds = new Set();
+const DEPTS = ['','SEECS','NBS','SMME','CEME','SCME','S3H','ASAB','CAE'];
+
+function ic(name,sz=18,col='currentColor',sw=1.7){
+  const p={search:`<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>`,message:`<path d="M21 12a8 8 0 0 1-8 8 8 8 0 0 1-3.5-.8L4 21l1.3-4.5A8 8 0 0 1 13 4a8 8 0 0 1 8 8Z"/>`,star:`<path d="M12 2l2.9 6.1 6.6.9-4.8 4.7 1.1 6.6L12 17l-5.9 3.3 1.1-6.6L2.5 9l6.6-.9L12 2z"/>`,user:`<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>`,home:`<path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/>`,book:`<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/>`,calendar:`<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>`};
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${p[name]||''}</svg>`;
+}
+function ava(name='?',size=52,imgUrl=''){
+  if(imgUrl) return `<div style="width:${size}px;height:${size}px;border-radius:18px;overflow:hidden;flex-shrink:0;border:2px solid #E4EAF2"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover"/></div>`;
+  const bgs=[['#dbeafe','#2563eb'],['#e0e7ff','#4338ca'],['#d1fae5','#047857'],['#fef3c7','#b45309'],['#fee2e2','#b91c1c'],['#e0f2fe','#0369a1']];
+  const p=(name||'?').split(' ');
+  const init=(p[0][0]+(p[1]?.[0]||'')).toUpperCase();
+  let h=0;for(let i=0;i<(name||'').length;i++)h=(h*31+name.charCodeAt(i))|0;
+  const[bg,fg]=bgs[Math.abs(h)%bgs.length];
+  return `<div style="width:${size}px;height:${size}px;border-radius:18px;background:${bg};display:inline-flex;align-items:center;justify-content:center;font-size:${size*0.34}px;font-weight:800;color:${fg};flex-shrink:0">${init}</div>`;
+}
+function stars(rating){
+  return Array.from({length:5},(_,i)=>`<svg width="12" height="12" viewBox="0 0 24 24" fill="${i<Math.round(rating)?'#f59e0b':'none'}" stroke="#f59e0b" stroke-width="2"><path d="M12 2l2.9 6.1 6.6.9-4.8 4.7 1.1 6.6L12 17l-5.9 3.3 1.1-6.6L2.5 9l6.6-.9L12 2z"/></svg>`).join('');
+}
+
+function renderPage() {
+  document.getElementById('root').innerHTML = `
+  <div class="with-sidebar">
+    ${sidebarHTML('mentors')}
+    <div class="snav-content">
+  <div class="page-shell">
+    <section class="page-hero">
+      <div style="position:relative;z-index:1">
+        <div class="tag tag-lav" style="margin-bottom:14px">Verified mentor directory</div>
+        <h1 class="section-title">Find the right senior to guide you</h1>
+        <p class="section-subtitle">${mentors.length} mentors available across NUST departments, all styled to match the main Peer Bridge experience.</p>
+        <div class="toolbar">
+          <div class="search-shell">
+            ${ic('search',16,'var(--ink-3)')}
+            <input value="${searchVal}" placeholder="Search by name, department, or expertise" oninput="debounce(this.value)"/>
+          </div>
+          <select class="input" style="width:auto;min-width:180px" onchange="deptFilter=this.value;loadMentors()">
+            ${DEPTS.map(d=>`<option value="${d}" ${deptFilter===d?'selected':''}>${d||'All departments'}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="mentor-grid">
+      ${mentors.length===0 ? `<div style="grid-column:1/-1" class="card empty-state">${ic('user',40,'var(--ink-3)',1.2)}<p>No mentors found yet. Try another search.</p></div>` : mentors.map(mentorCard).join('')}
+    </div>
+  </div>
+  </div></div>`;
+}
+
+function mentorCard(m) {
+  const isVerified = (m.rating||0) >= 4 && (m.rating_count||0) >= 10;
+  return `
+  <article class="mentor-card fade-up" onclick="location.href='/profile.html?id=${m.id}'">
+    <div class="mentor-card-top">
+      <div style="position:relative">
+        ${ava(m.name,56,m.profile_image||'')}
+        ${m.is_online?`<span style="position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:3px solid #fff"></span>`:''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <strong style="font-size:15px">${m.name}</strong>
+          ${m.role==='lead_mentor'?'<span class="tag tag-lav" style="padding:3px 8px;font-size:10px">Lead</span>':''}
+          ${isVerified?'<span class="verified-pill">Verified Mentor</span>':''}
+        </div>
+        <div class="mentor-meta">${m.department||'NUST'}${m.graduation_year?` · '${String(m.graduation_year).slice(-2)}`:''}${m.is_online?' · Online now':''}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:7px">
+          <div class="stars">${stars(m.rating||0)}</div>
+          <span style="font-size:12.5px;font-weight:700;color:var(--ink-2)">${Number(m.rating||0).toFixed(1)}</span>
+          <span style="font-size:11.5px;color:var(--ink-3)">(${m.rating_count||0} ratings)</span>
+        </div>
+      </div>
+    </div>
+    <p class="mentor-bio">${m.bio || 'Available to help with academics, career decisions, and finding the right next step inside the NUST community.'}</p>
+    <div class="mentor-actions">
+      <div style="font-size:12px;color:var(--ink-3)">${m.sessions_count||0} mentoring sessions</div>
+      <div class="mentor-actions-right">
+        <button class="chip-btn" style="font-size:12px;padding:6px 10px" onclick="event.stopPropagation();location.href='/messages.html?to=${m.id}&name=${encodeURIComponent(m.name)}'">
+          ${ic('message',13)} Message
+        </button>
+        ${requestedIds.has(m.id)
+          ? `<button class="btn btn-ghost" style="font-size:12px;padding:8px 12px;color:#2563EB;border-color:#BFDBFE;cursor:default" disabled>✓ Requested</button>`
+          : `<button class="btn btn-primary" style="font-size:12px;padding:8px 12px" onclick="event.stopPropagation();requestMentorship(${m.id},'${m.name.replace(/'/g,"\\'")}')">Connect</button>`
+        }
+      </div>
+    </div>
+  </article>`;
+}
+
+async function loadMentors() {
+  try {
+    const q = new URLSearchParams();
+    if (searchVal) q.set('search', searchVal);
+    if (deptFilter) q.set('dept', deptFilter);
+    mentors = await pb.get('/users/mentors?' + q);
+  } catch(e) {
+    showToast('Failed to load mentors');
+  }
+  renderPage();
+}
+
+async function requestMentorship(id, name) {
+  try {
+    await pb.post(`/users/${id}/request-mentorship`, { message: 'Hi! I would love to connect for mentorship.' });
+    requestedIds.add(id);
+    showToast(`Request sent to ${name}!`);
+    renderPage();
+  } catch(e) {
+    showToast(e.message || 'Failed to send request');
+  }
+}
+
+async function loadMyRequests() {
+  try {
+    const ids = await pb.get('/users/my-requests');
+    ids.forEach(id => requestedIds.add(id));
+  } catch(e) {}
+}
+
+let st;
+function debounce(v){clearTimeout(st);searchVal=v;st=setTimeout(loadMentors,400);}
+
+renderPage();
+loadMyRequests().then(loadMentors);
+</script>
+</body>
+</html>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peer Bridge — NUST Mentorship Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:   #2563EB;
+  --blue2:  #1D4ED8;
+  --navy:   #0D1B2A;
+  --white:  #FFFFFF;
+  --offwht: #F7F9FC;
+  --slate:  #4B5C73;
+  --muted:  #8899B0;
+  --border: #E4EAF2;
+  --bg:     #F4F7FF;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--white);
+  color: var(--navy);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1);
+}
+.reveal.d1 { transition-delay: .08s; }
+.reveal.d2 { transition-delay: .16s; }
+.reveal.d3 { transition-delay: .24s; }
+.reveal.d4 { transition-delay: .32s; }
+.reveal.on { opacity: 1; transform: none; }
+
+/* ─── TOP NAV ─── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 64px; height: 66px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none;
+}
+.logo-wm {
+  font-size: 16.5px; font-weight: 700;
+  color: var(--navy); letter-spacing: -.3px;
+}
+
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  font-size: 14px; font-weight: 500; color: var(--slate);
+  text-decoration: none; transition: color .18s;
+}
+.nav-links a:hover { color: var(--blue); }
+
+.nav-ctas { display: flex; gap: 10px; align-items: center; }
+
+.btn-outline {
+  padding: 8px 20px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: transparent; cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 600; color: var(--navy);
+  transition: border-color .18s, background .18s;
+}
+.btn-outline:hover { border-color: var(--blue); background: var(--bg); }
+
+.btn-blue {
+  padding: 9px 22px; border: none; border-radius: 8px;
+  background: var(--blue); cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 700; color: white;
+  box-shadow: 0 2px 10px rgba(37,99,235,.35);
+  transition: background .18s, transform .15s, box-shadow .18s;
+}
+.btn-blue:hover { background: var(--blue2); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(37,99,235,.45); }
+
+/* ─── HERO BANNER ─── */
+.hero-banner {
+  position: relative;
+  width: 100%; height: 500px;
+  overflow: hidden;
+}
+
+.hero-img {
+  position: absolute; inset: 0;
+  background-image: url('https://wpassets.graana.com/blog/wp-content/uploads/2023/05/nust-uni-islamabad.jpg');
+  background-size: cover; background-position: center 40%;
+}
+
+/* Gradient overlay — strong on left, fades right */
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(10,22,50,.82) 0%,
+    rgba(10,22,50,.65) 40%,
+    rgba(10,22,50,.15) 75%,
+    transparent 100%
+  );
+}
+
+.hero-text {
+  position: absolute; top: 50%; left: 64px;
+  transform: translateY(-50%);
+  max-width: 520px;
+}
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: rgba(255,255,255,.65);
+  margin-bottom: 18px;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #60A5FA; flex-shrink: 0;
+}
+
+.hero-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 700; line-height: 1.1;
+  color: white; margin-bottom: 14px;
+  letter-spacing: -.3px;
+}
+.hero-h1 em { font-style: normal; color: #93C5FD; }
+
+.hero-sub {
+  font-size: 16px; color: rgba(255,255,255,.7);
+  line-height: 1.7; margin-bottom: 28px;
+}
+
+.hero-form {
+  display: flex; gap: 0; max-width: 420px;
+  background: white; border-radius: 9px;
+  overflow: hidden;
+  box-shadow: 0 6px 30px rgba(0,0,0,.22);
+}
+.hero-form input {
+  flex: 1; border: none; outline: none;
+  padding: 13px 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; color: var(--navy);
+}
+.hero-form input::placeholder { color: var(--muted); }
+.hero-form button {
+  padding: 0 22px; border: none;
+  background: var(--blue); color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: background .18s;
+}
+.hero-form button:hover { background: var(--blue2); }
+
+.hero-note {
+  margin-top: 12px; font-size: 12px;
+  color: rgba(255,255,255,.4);
+}
+.hero-note b { color: rgba(255,255,255,.65); font-weight: 500; }
+
+/* ─── FEATURES SECTION ─── */
+.feat-section {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.feat-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 72px 64px;
+}
+
+.feat-header {
+  text-align: center; margin-bottom: 52px;
+}
+.feat-tag {
+  display: block;
+  font-size: 11.5px; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 12px;
+}
+.feat-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 700; color: var(--navy);
+  margin-bottom: 12px; letter-spacing: -.2px;
+}
+.feat-lead { font-size: 15.5px; color: var(--slate); max-width: 460px; margin: 0 auto; line-height: 1.7; }
+
+.feat-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 20px;
+}
+
+.feat-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 38px 30px;
+  box-shadow: 0 2px 12px rgba(15,23,42,.06);
+  transition: border-color .22s, box-shadow .22s, transform .22s;
+}
+.feat-card:hover {
+  border-color: #BFDBFE;
+  box-shadow: 0 12px 40px rgba(37,99,235,.11);
+  transform: translateY(-5px);
+}
+
+.feat-icon {
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 26px;
+  transition: background .22s, border-color .22s;
+}
+.feat-card:hover .feat-icon { background: #EFF6FF; border-color: #BFDBFE; }
+
+.feat-h { font-size: 17px; font-weight: 800; color: var(--navy); margin-bottom: 11px; letter-spacing: -.2px; }
+.feat-p { font-size: 14px; color: var(--slate); line-height: 1.75; }
+
+/* ─── HOW IT WORKS — dark ─── */
+.hiw-section {
+  background: var(--navy);
+  position: relative; overflow: hidden;
+}
+.hiw-section::before {
+  content: ''; position: absolute;
+  top: -200px; right: -150px;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(37,99,235,.14) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hiw-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 80px 64px;
+}
+.hiw-top { text-align: center; margin-bottom: 56px; }
+.hiw-tag {
+  display: block; font-size: 11.5px; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+  color: #60A5FA; margin-bottom: 12px;
+}
+.hiw-h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3vw, 40px); font-weight: 700;
+  color: white; letter-spacing: -.2px;
+}
+.hiw-h2 em { font-style: normal; color: #93C5FD; }
+
+.steps {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 0;
+}
+.step {
+  padding: 0 44px;
+  border-right: 1px solid rgba(255,255,255,.07);
+}
+.step:first-child { padding-left: 0; }
+.step:last-child { border-right: none; padding-right: 0; }
+
+.step-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 56px; font-weight: 700;
+  color: rgba(255,255,255,.06); line-height: 1;
+  margin-bottom: 16px;
+}
+.step-ico {
+  width: 48px; height: 48px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.step-h { font-size: 17px; font-weight: 700; color: white; margin-bottom: 10px; }
+.step-p { font-size: 14px; color: rgba(255,255,255,.5); line-height: 1.72; }
+
+/* ─── STATS STRIP ─── */
+.stats-strip {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stats-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 0 64px;
+  display: grid; grid-template-columns: repeat(4,1fr);
+}
+.stat-cell {
+  padding: 40px 20px; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-n {
+  font-family: 'Playfair Display', serif;
+  font-size: 44px; font-weight: 700;
+  color: var(--navy); line-height: 1;
+}
+.stat-n em { color: var(--blue); font-style: normal; }
+.stat-l { font-size: 13.5px; color: var(--slate); margin-top: 6px; }
+
+/* ─── CTA BANNER ─── */
+.cta-section {
+  position: relative; overflow: hidden;
+  min-height: 380px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+}
+.cta-bg {
+  position: absolute; inset: 0;
+  background-color: #0D1B2A;
+  background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1600&q=80');
+  background-size: cover; background-position: center 40%;
+  filter: brightness(.3) saturate(.7);
+}
+.cta-content {
+  position: relative; z-index: 2;
+  padding: 80px 32px;
+}
+.cta-h {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 50px); font-weight: 700;
+  color: white; line-height: 1.12; margin-bottom: 16px;
+}
+.cta-h em { font-style: normal; color: #93C5FD; }
+.cta-p { font-size: 17px; color: rgba(255,255,255,.62); margin-bottom: 34px; line-height: 1.7; }
+.cta-btns { display: flex; gap: 14px; justify-content: center; }
+.cta-btn-pri {
+  padding: 14px 32px; border: none; border-radius: 9px;
+  background: var(--blue); color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(37,99,235,.5);
+  transition: background .18s, transform .15s;
+}
+.cta-btn-pri:hover { background: var(--blue2); transform: translateY(-2px); }
+.cta-btn-sec {
+  padding: 14px 32px;
+  border: 1.5px solid rgba(255,255,255,.35); border-radius: 9px;
+  background: transparent; color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: border-color .18s, background .18s;
+}
+.cta-btn-sec:hover { border-color: white; background: rgba(255,255,255,.07); }
+
+/* ─── MODAL & TOAST ─── */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes toastUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  padding: 12px 20px; background: var(--navy); color: white;
+  border-radius: 10px; font-size: 13.5px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3); animation: toastUp .3s ease both;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: #0A1220;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+.footer-in {
+  max-width: 1200px; margin: 0 auto;
+  padding: 60px 64px 36px;
+}
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px; margin-bottom: 48px;
+}
+.footer-blurb { font-size: 13.5px; color: rgba(255,255,255,.38); line-height: 1.75; margin-top: 12px; max-width: 200px; }
+.footer-col h5 {
+  font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .8px;
+  color: rgba(255,255,255,.85); margin-bottom: 18px;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.footer-col a { font-size: 13.5px; color: rgba(255,255,255,.42); text-decoration: none; transition: color .18s; }
+.footer-col a:hover { color: rgba(255,255,255,.85); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding-top: 22px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-copy { font-size: 13px; color: rgba(255,255,255,.25); }
+.footer-lnks { display: flex; gap: 20px; }
+.footer-lnks a { font-size: 13px; color: rgba(255,255,255,.25); text-decoration: none; transition: color .18s; }
+.footer-lnks a:hover { color: rgba(255,255,255,.7); }
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <a href="#" class="logo">
+    <svg width="44" height="30" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lg1" x1="0" y1="0" x2="140" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stop-color="#2563EB"/>
+          <stop offset="50%"  stop-color="#1A3A8F"/>
+          <stop offset="100%" stop-color="#0D1B2A"/>
+        </linearGradient>
+      </defs>
+      <!-- Left arc -->
+      <path d="M 14 70 C 14 18, 62 18, 70 44" stroke="url(#lg1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <!-- Right arc -->
+      <path d="M 70 44 C 78 18, 126 18, 126 70" stroke="url(#lg1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <!-- Center ring -->
+      <circle cx="70" cy="44" r="10" stroke="url(#lg1)" stroke-width="7" fill="white"/>
+      <!-- Left dot -->
+      <circle cx="14" cy="70" r="10" fill="#2563EB"/>
+      <!-- Right dot -->
+      <circle cx="126" cy="70" r="10" fill="#0D1B2A"/>
+    </svg>
+    <span class="logo-wm">Peer Bridge</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#hiw">How it works</a></li>
+    <li><a href="#features">Resources</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+
+  <div class="nav-ctas">
+    <button class="btn-outline">Sign in</button>
+    <button class="btn-blue">Get started</button>
+  </div>
+</nav>
+
+<!-- ══ HERO BANNER ══ -->
+<div class="hero-banner">
+  <div class="hero-img"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-text">
+    <div class="hero-eyebrow">Verified NUST community · 2,847 students</div>
+    <h1 class="hero-h1">The bridge between<br><em>where you are</em><br>and where they've been.</h1>
+    <p class="hero-sub">Connect with verified NUST seniors for mentorship, career guidance, and shared resources.</p>
+    <div class="hero-form">
+      <input type="email" id="hero-email-inp" placeholder="Enter your NUST email">
+      <button>Get started →</button>
+    </div>
+    <div id="hero-email-err" style="display:none;margin-top:8px;font-size:12px;color:rgba(255,200,200,.9);font-weight:500;">Only NUST email addresses are allowed.</div>
+    <p class="hero-note"><b>NUST-only</b> · Verified seniors · <b>Free forever</b></p>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section class="feat-section" id="features">
+  <div class="feat-inner">
+    <div class="feat-header reveal">
+      <span class="feat-tag">What's inside</span>
+      <h2 class="feat-h2">Everything you need, in one place</h2>
+      <p class="feat-lead">Four pillars designed around how NUST students actually ask for help.</p>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#2563EB" stroke-width="1.7" stroke-linecap="round">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+          </svg>
+        </div>
+        <div class="feat-h">Academic Help</div>
+        <p class="feat-p">Post a question, get mentored answers from verified seniors in your department. Threaded and searchable.</p>
+      </div>
+
+      <div class="feat-card reveal d1">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#2563EB" stroke-width="1.7" stroke-linecap="round">
+            <polyline points="21 6 12.5 14.5 7.5 9.5 1 16"/><polyline points="15 6 21 6 21 12"/>
+          </svg>
+        </div>
+        <div class="feat-h">Career & Interns</div>
+        <p class="feat-p">Resume reviews, interview prep, and direct referrals from alumni who've secured the roles you're targeting.</p>
+      </div>
+
+      <div class="feat-card reveal d2">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#2563EB" stroke-width="1.7" stroke-linecap="round">
+            <rect x="2" y="3" width="18" height="18" rx="2"/><line x1="15" y1="1" x2="15" y2="5"/><line x1="7" y1="1" x2="7" y2="5"/><line x1="2" y1="9" x2="20" y2="9"/>
+          </svg>
+        </div>
+        <div class="feat-h">Events & Societies</div>
+        <p class="feat-p">Never miss a recruitment drive or society open-house again. Verified NUST events curated to your feed.</p>
+      </div>
+
+      <div class="feat-card reveal d3">
+        <div class="feat-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#2563EB" stroke-width="1.7" stroke-linecap="round">
+            <path d="M21 18a2 2 0 01-2 2H3a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+          </svg>
+        </div>
+        <div class="feat-h">Resource Library</div>
+        <p class="feat-p">Past papers, roadmaps, notes — curated by cohort. Stop searching Drive; start learning immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS ══ -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-cell reveal"><div class="stat-n">2,<em>847</em></div><div class="stat-l">Verified students</div></div>
+    <div class="stat-cell reveal d1"><div class="stat-n"><em>430</em></div><div class="stat-l">Senior mentors</div></div>
+    <div class="stat-cell reveal d2"><div class="stat-n"><em>12k</em>+</div><div class="stat-l">Questions answered</div></div>
+    <div class="stat-cell reveal d3"><div class="stat-n"><em>98</em>%</div><div class="stat-l">Satisfaction rate</div></div>
+  </div>
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="hiw-section" id="hiw">
+  <div class="hiw-inner">
+    <div class="hiw-top reveal">
+      <span class="hiw-tag">How it works</span>
+      <h2 class="hiw-h2">Three steps to your <em>Mentor</em></h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-ico">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#60A5FA" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="11" cy="8" r="4"/><path d="M3 19c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div class="step-h">Create your profile</div>
+        <p class="step-p">Sign up with your NUST email. Student status is verified automatically and you're placed in your department community.</p>
+      </div>
+      <div class="step reveal d1">
+        <div class="step-num">02</div>
+        <div class="step-ico">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#60A5FA" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="10" cy="10" r="7"/><path d="M17 17l3 3"/>
+          </svg>
+        </div>
+        <div class="step-h">Find your mentor</div>
+        <p class="step-p">Browse verified seniors by department, expertise, and availability. Filter by career track or research interest.</p>
+      </div>
+      <div class="step reveal d2">
+        <div class="step-num">03</div>
+        <div class="step-ico">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#60A5FA" stroke-width="1.7" stroke-linecap="round">
+            <path d="M5 11l4 4 8-8"/>
+          </svg>
+        </div>
+        <div class="step-h">Start growing</div>
+        <p class="step-p">Ask questions, book sessions, and access curated resources — all in one structured, trusted platform.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- gap -->
+<div style="height:60px; background:white;"></div>
+
+<!-- ══ CTA BANNER ══ -->
+<section class="cta-section">
+  <div class="cta-bg" style="height: 423.585px"></div>
+  <div class="cta-content reveal">
+    <h2 class="cta-h">Your bridge is waiting.<br><em>Step onto it.</em></h2>
+    <p class="cta-p">Join 2,847 NUST students already learning from verified seniors<br>who've walked your exact path.</p>
+    <div class="cta-btns">
+      <button class="cta-btn-pri">Join free — it takes 2 minutes</button>
+      <button class="cta-btn-sec">Become a mentor</button>
+    </div>
+  </div>
+</section>
+
+<!-- gap -->
+<div style="height:60px; background:white;"></div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-in">
+    <div class="footer-grid">
+      <div>
+        <a href="#" class="logo" style="text-decoration:none;">
+          <svg width="44" height="30" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="lg2" x1="0" y1="0" x2="140" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#2563EB"/>
+                <stop offset="50%"  stop-color="#1A3A8F"/>
+                <stop offset="100%" stop-color="#0D1B2A"/>
+              </linearGradient>
+            </defs>
+            <path d="M 14 70 C 14 18, 62 18, 70 44" stroke="url(#lg2)" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M 70 44 C 78 18, 126 18, 126 70" stroke="url(#lg2)" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <circle cx="70" cy="44" r="10" stroke="url(#lg2)" stroke-width="7" fill="#0A1220"/>
+            <circle cx="14" cy="70" r="10" fill="#2563EB"/>
+            <circle cx="126" cy="70" r="10" fill="#0D1B2A"/>
+          </svg>
+          <span class="logo-wm">Peer Bridge</span>
+        </a>
+        <p class="footer-blurb">The structured mentorship platform built for NUST — by NUST students.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <ul>
+          <li><a href="#">Academic Help</a></li>
+          <li><a href="#">Career & Interns</a></li>
+          <li><a href="#">Events</a></li>
+          <li><a href="#">Resource Library</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Community</h5>
+        <ul>
+          <li><a href="#">For juniors</a></li>
+          <li><a href="#">For mentors</a></li>
+          <li><a href="#">Departments</a></li>
+          <li><a href="#">Leaderboard</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Peer Bridge. Built at NUST, for NUST.</span>
+      <div class="footer-lnks">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('on'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+<!-- ══ AUTH MODAL ══ -->
+<div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(10,18,32,.72);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='auth-modal')closeAuthModal()">
+  <div style="background:#fff;border-radius:22px;width:100%;max-width:430px;box-shadow:0 32px 80px rgba(0,0,0,.4);position:relative;overflow:hidden">
+    <button onclick="closeAuthModal()" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:1.5px solid #E4EAF2;background:#F7F9FC;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:#8899B0;font-family:sans-serif;padding:0;line-height:1">✕</button>
+    <div id="modal-body" style="padding:32px 30px 28px"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  // ── Already logged in → go to feed ──
+  if (pb.getToken()) window.location.href = '/feed.html';
+
+  // ── State ──
+  let authStep = 'email';
+  let authEmail = '';
+  let authOTP = '';
+  let authDevOTP = '';
+  let authLoading = false;
+  let authPwMode = false;
+  let authPw = '';
+
+  // ── Modal open / close ──
+  function openAuthModal(prefill) {
+    if (prefill) authEmail = prefill;
+    document.getElementById('auth-modal').style.display = 'flex';
+    renderModal();
+  }
+  function closeAuthModal() {
+    document.getElementById('auth-modal').style.display = 'none';
+    authStep = 'email'; authOTP = ''; authLoading = false; authPwMode = false; authPw = '';
+  }
+
+  // ── Render modal content ──
+  function renderModal() {
+    const body = document.getElementById('modal-body');
+    if (authStep === 'email')   body.innerHTML = tmplEmail();
+    if (authStep === 'otp')     body.innerHTML = tmplOTP();
+    if (authStep === 'profile') body.innerHTML = tmplProfile();
+    if (authStep === 'done')    body.innerHTML = tmplDone();
+    attachModalHandlers();
+  }
+
+  const inp = (extra) => `width:100%;padding:13px 16px;border:1.5px solid #E4EAF2;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:#0D1B2A;outline:none;${extra||''}`;
+  const focusStyle = `onfocus="this.style.borderColor='#2563EB';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.12)'" onblur="this.style.borderColor='#E4EAF2';this.style.boxShadow='none'"`;
+  const spinHtml = `<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle"></span>`;
+  const bigBtn = (id, label, onclick) => `<button id="${id}" onclick="${onclick}" style="width:100%;padding:13px;background:#2563EB;color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer;transition:background .18s" onmouseover="this.style.background='#1D4ED8'" onmouseout="this.style.background='#2563EB'">${authLoading ? spinHtml : label}</button>`;
+  const ghostBtn = (label, onclick) => `<button onclick="${onclick}" style="padding:12px 18px;border:1.5px solid #E4EAF2;border-radius:10px;background:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;cursor:pointer;color:#4B5C73;transition:border-color .18s" onmouseover="this.style.borderColor='#2563EB'" onmouseout="this.style.borderColor='#E4EAF2'">${label}</button>`;
+
+  const NUST_RE = /^[a-z0-9._-]+@(student\.)?nust\.edu\.pk$/i;
+
+  function validateEmailInput(val) {
+    const err = document.getElementById('email-inline-err');
+    if (!err) return;
+    const clean = (val||'').trim();
+    if (!clean) { err.style.display = 'none'; return; }
+    err.style.display = NUST_RE.test(clean) ? 'none' : 'block';
+  }
+
+  function tmplEmail() {
+    if (authPwMode) return `
+      <div style="margin-bottom:22px"><div style="font-size:21px;font-weight:800;color:#0D1B2A;margin-bottom:5px">Welcome back</div><div style="font-size:13.5px;color:#8899B0">Sign in to your Peer Bridge account</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <input id="m-email" type="email" placeholder="your.name@nust.edu.pk" value="${authEmail}" style="${inp()}" ${focusStyle} oninput="authEmail=this.value;validateEmailInput(this.value)"/>
+          <div id="email-inline-err" style="display:none;font-size:12px;color:#DC2626;margin-top:5px;padding-left:2px">Only NUST email addresses are allowed (@nust.edu.pk or @student.nust.edu.pk).</div>
+        </div>
+        <input id="m-pw" type="password" placeholder="Password" style="${inp()}" ${focusStyle} oninput="authPw=this.value" onkeydown="if(event.key==='Enter')handlePwLogin()"/>
+        ${bigBtn('m-submit', 'Sign in →', 'handlePwLogin()')}
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:#8899B0">
+        <a href="#" onclick="authPwMode=false;renderModal();return false" style="color:#2563EB;font-weight:600;text-decoration:none">Use email code instead</a>
+      </div>`;
+    return `
+      <div style="margin-bottom:22px"><div style="font-size:21px;font-weight:800;color:#0D1B2A;margin-bottom:5px">Join Peer Bridge</div><div style="font-size:13.5px;color:#8899B0">Enter your NUST email to get started</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <input id="m-email" type="email" placeholder="your.name@nust.edu.pk" value="${authEmail}" style="${inp()}" ${focusStyle} oninput="authEmail=this.value;validateEmailInput(this.value)" onkeydown="if(event.key==='Enter')handleEmailSubmit()"/>
+          <div id="email-inline-err" style="display:${authEmail&&!NUST_RE.test(authEmail)?'block':'none'};font-size:12px;color:#DC2626;margin-top:5px;padding-left:2px">Only NUST email addresses are allowed (@nust.edu.pk or @student.nust.edu.pk).</div>
+        </div>
+        ${bigBtn('m-submit', 'Send code →', 'handleEmailSubmit()')}
+      </div>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:#8899B0">
+        Already have a password? <a href="#" onclick="authPwMode=true;renderModal();return false" style="color:#2563EB;font-weight:600;text-decoration:none">Sign in with password</a>
+      </div>`;
+  }
+
+  function tmplOTP() {
+    return `
+      <div style="margin-bottom:20px"><div style="font-size:21px;font-weight:800;color:#0D1B2A;margin-bottom:5px">Check your email</div><div style="font-size:13.5px;color:#8899B0">6-digit code sent to <strong style="color:#4B5C73">${authEmail}</strong></div>
+        ${authDevOTP ? `<div style="margin-top:10px;padding:8px 12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;font-size:12px;color:#166534;font-weight:600">Dev OTP: <strong>${authDevOTP}</strong></div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:18px" id="otp-row">
+        ${[0,1,2,3,4,5].map(i=>`<input class="otp-b" maxlength="1" data-idx="${i}" value="${authOTP[i]||''}" inputmode="numeric" style="flex:1;min-width:0;width:0;height:52px;text-align:center;font-size:20px;font-weight:700;border:2px solid #E4EAF2;border-radius:10px;font-family:'Plus Jakarta Sans',monospace;outline:none;padding:0" onfocus="this.style.borderColor='#2563EB';this.style.boxShadow='0 0 0 3px rgba(37,99,235,.12)'" onblur="this.style.borderColor='#E4EAF2';this.style.boxShadow='none'"/>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px">
+        ${ghostBtn('← Back', "authStep='email';renderModal()")}
+        ${bigBtn('m-verify', 'Verify →', 'handleVerify()')}
+      </div>`;
+  }
+
+  function tmplProfile() {
+    const depts = ["SEECS","NBS","SMME","CEME","SCME","S3H","ASAB","CAE","NISTE"];
+    const roles = [['freshman','Freshman'],['sophomore','Sophomore'],['junior','Junior'],['senior','Senior'],['mentor','I want to mentor']];
+    return `
+      <div style="margin-bottom:22px"><div style="font-size:21px;font-weight:800;color:#0D1B2A;margin-bottom:5px">Complete your profile</div><div style="font-size:13.5px;color:#8899B0">Tell us a bit about yourself</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0">
+          <div id="avatar-preview" style="width:76px;height:76px;border-radius:50%;background:#EFF3FF;border:2px dashed #93C5FD;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('p-img').click()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <label for="p-img" style="font-size:12.5px;color:#2563EB;cursor:pointer;font-weight:600">Upload photo <span style="color:#8899B0;font-weight:400">(optional)</span></label>
+          <input id="p-img" type="file" accept="image/*" style="display:none" onchange="previewAvatar(this)"/>
+        </div>
+        <input id="p-name" placeholder="Full name *" style="${inp()}" ${focusStyle}/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <select id="p-dept" style="${inp('background:#fff;cursor:pointer')}">
+            <option value="">Department</option>
+            ${depts.map(d=>`<option>${d}</option>`).join('')}
+          </select>
+          <select id="p-role" style="${inp('background:#fff;cursor:pointer')}">
+            ${roles.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+          </select>
+        </div>
+        <textarea id="p-bio" placeholder="Short bio — what you study, interests, how you can help others (optional)" rows="3" style="${inp('resize:none;line-height:1.55')}"></textarea>
+        <input id="p-pw" type="password" placeholder="Set a password (optional)" style="${inp()}" ${focusStyle}/>
+        ${bigBtn('p-submit', 'Create my account →', 'handleProfileSetup()')}
+      </div>`;
+  }
+
+  function previewAvatar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const el = document.getElementById('avatar-preview');
+    el.style.border = '2px solid #2563EB';
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`;
+  }
+
+  function tmplDone() {
+    return `<div style="text-align:center;padding:24px 0">
+      <div style="width:64px;height:64px;border-radius:50%;background:#F0FDF4;border:1.5px solid #BBF7D0;display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round"><path d="m5 13 4 4 10-10"/></svg>
+      </div>
+      <div style="font-size:22px;font-weight:800;color:#0D1B2A;margin-bottom:8px">All set!</div>
+      <div style="font-size:14px;color:#8899B0">Redirecting you to your feed…</div>
+    </div>`;
+  }
+
+  function attachModalHandlers() {
+    const boxes = document.querySelectorAll('.otp-b');
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', e => {
+        const v = e.target.value.replace(/\D/g,''); e.target.value = v;
+        authOTP = Array.from(boxes).map(b=>b.value).join('');
+        if (v && i < 5) boxes[i+1].focus();
+        if (authOTP.length === 6) handleVerify();
+      });
+      box.addEventListener('keydown', e => { if (e.key==='Backspace' && !box.value && i>0) boxes[i-1].focus(); });
+      box.addEventListener('paste', e => {
+        const text = (e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+        if (text.length) { text.split('').forEach((c,j) => { if(boxes[j]) boxes[j].value=c; }); authOTP=text; boxes[Math.min(5,text.length-1)].focus(); if(authOTP.length===6) setTimeout(handleVerify,200); e.preventDefault(); }
+      });
+    });
+    const focus = document.querySelector('#m-email, .otp-b, #p-name');
+    if (focus) setTimeout(() => focus.focus(), 60);
+  }
+
+  // ── Handlers ──
+  async function handleEmailSubmit() {
+    const email = authEmail.trim();
+    if (!/^[a-z0-9._-]+@(student\.)?nust\.edu\.pk$/i.test(email)) { showToast('Please enter a valid NUST email (@nust.edu.pk)'); return; }
+    authLoading = true; renderModal();
+    try {
+      const res = await fetch('/api/auth/send-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      authDevOTP = data.dev_otp || ''; authOTP = ''; authStep = 'otp';
+    } catch(err) { showToast(err.message || 'Failed to send OTP'); }
+    finally { authLoading = false; renderModal(); }
+  }
+
+  async function handleVerify() {
+    if (authOTP.length !== 6) return;
+    authLoading = true; renderModal();
+    try {
+      const res = await fetch('/api/auth/verify-otp', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: authEmail, otp: authOTP }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      if (data.is_new_user) {
+        // Store temporarily — do NOT commit to auth until profile setup finishes
+        sessionStorage.setItem('pb_setup_token', data.token);
+        authStep = 'profile';
+      } else {
+        pb.setAuth(data.token, data.user);
+        authStep = 'done'; setTimeout(() => window.location.href='/feed.html', 1000);
+      }
+    } catch(err) { showToast(err.message || 'Invalid OTP'); authOTP = ''; }
+    finally { authLoading = false; renderModal(); }
+  }
+
+  async function handlePwLogin() {
+    if (!authEmail.trim() || !authPw) { showToast('Enter your email and password'); return; }
+    authLoading = true; renderModal();
+    try {
+      const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: authEmail.trim(), password: authPw }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      pb.setAuth(data.token, data.user);
+      authStep = 'done'; setTimeout(() => window.location.href='/feed.html', 1000);
+    } catch(err) { showToast(err.message || 'Login failed'); }
+    finally { authLoading = false; renderModal(); }
+  }
+
+  async function handleProfileSetup() {
+    const name       = document.getElementById('p-name')?.value?.trim();
+    const department = document.getElementById('p-dept')?.value || '';
+    const role       = document.getElementById('p-role')?.value || 'freshman';
+    const bio        = document.getElementById('p-bio')?.value?.trim() || '';
+    const password   = document.getElementById('p-pw')?.value || '';
+    const imgFile    = document.getElementById('p-img')?.files?.[0];
+    if (!name) { showToast('Name is required'); return; }
+    authLoading = true; renderModal();
+    try {
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('department', department);
+      fd.append('role', role);
+      fd.append('bio', bio);
+      fd.append('password', password);
+      if (imgFile) fd.append('profile_image', imgFile);
+      const setupToken = sessionStorage.getItem('pb_setup_token') || pb.getToken();
+      const res = await fetch('/api/auth/setup-profile', { method:'POST', headers:{'Authorization':`Bearer ${setupToken}`}, body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      sessionStorage.removeItem('pb_setup_token');
+      pb.setAuth(data.token, data.user);
+      authStep = 'done'; setTimeout(() => window.location.href='/feed.html', 1000);
+    } catch(err) { showToast(err.message || 'Profile setup failed'); }
+    finally { authLoading = false; renderModal(); }
+  }
+
+  // ── Wire all CTA buttons ──
+  // Nav: Sign in & Get started
+  document.querySelectorAll('.btn-outline, .btn-blue').forEach(btn => btn.addEventListener('click', () => openAuthModal()));
+
+  // Hero form
+  const heroInput = document.getElementById('hero-email-inp');
+  const heroErr   = document.getElementById('hero-email-err');
+  const heroBtn   = document.querySelector('.hero-form button');
+  const NUST_HERO_RE = /^[a-z0-9._-]+@(student\.)?nust\.edu\.pk$/i;
+  heroInput.addEventListener('input', () => {
+    const v = heroInput.value.trim();
+    heroErr.style.display = (v && !NUST_HERO_RE.test(v)) ? 'block' : 'none';
+  });
+  heroBtn.addEventListener('click', () => {
+    const email = heroInput.value.trim();
+    openAuthModal(email);
+    if (email) handleEmailSubmit();
+  });
+  heroInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const email = heroInput.value.trim(); openAuthModal(email); if (email) handleEmailSubmit(); }
+  });
+
+  // CTA section buttons
+  document.querySelector('.cta-btn-pri').addEventListener('click', () => openAuthModal());
+  document.querySelector('.cta-btn-sec').addEventListener('click', () => openAuthModal());
+</script>
+</body>
+</html>

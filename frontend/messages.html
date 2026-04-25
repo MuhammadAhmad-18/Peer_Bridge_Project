@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Messages – Peer Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/shared.css"/>
+<style>
+.msg-shell{max-width:1440px;margin:0 auto;padding:24px 32px 32px}
+.msg-hero{margin-bottom:18px}
+.msg-layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 130px);border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm)}
+.convo-list{border-right:1px solid var(--line);overflow-y:auto;background:linear-gradient(180deg,#fff 0%,#f9fbff 100%)}
+.convo-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s,border-color .1s}
+.convo-item:hover{background:var(--blue-soft)}
+.convo-item.active{background:linear-gradient(90deg,var(--blue-soft) 0%,#fff 100%);border-left:3px solid var(--blue)}
+.chat-pane{display:flex;flex-direction:column;background:linear-gradient(180deg,#f8fbff 0%,#f4f7ff 100%)}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:72%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.45;box-shadow:var(--shadow-sm)}
+.bubble-me{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.bubble-them{align-self:flex-start;background:#fff;color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:4px}
+@media(max-width:700px){
+  .msg-shell{padding:16px}
+  .msg-layout{grid-template-columns:1fr;min-height:calc(100vh - 170px)}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="/js/api.js"></script>
+<script>
+pb.requireAuth();
+const me = pb.getUser();
+const qp = new URLSearchParams(location.search);
+let convos = [], activeId = qp.get('to') ? Number(qp.get('to')) : null;
+let activeName = qp.get('name') ? decodeURIComponent(qp.get('name')) : '';
+let msgs = [], draft = '', pollTimer = null;
+
+function ic(n,sz=18,col='currentColor',sw=1.7){const p={message:`<path d="M21 12a8 8 0 0 1-8 8 8 8 0 0 1-3.5-.8L4 21l1.3-4.5A8 8 0 0 1 13 4a8 8 0 0 1 8 8Z"/>`,send:`<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/>`,home:`<path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/>`,search:`<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>`};
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${p[n]||''}</svg>`;}
+function ava(name='?',size=36,online=false){const bgs=[['#fde8f0','#f5b8ce'],['#c7d9ff','#8ea8e8'],['#d4f1e3','#7fc9a4'],['#ffe4cc','#e8a76f'],['#e9d7fb','#b48de0'],['#fff4b8','#e6c84d']];const p=(name||'?').split(' ');const init=(p[0][0]+(p[1]?.[0]||'')).toUpperCase();let h=0;for(let i=0;i<(name||'').length;i++)h=(h*31+name.charCodeAt(i))|0;const[bg,fg]=bgs[Math.abs(h)%bgs.length];
+  return `<div style="position:relative;display:inline-flex;flex-shrink:0"><div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,${bg},${fg}33);display:inline-flex;align-items:center;justify-content:center;font-size:${size*0.38}px;font-weight:700;color:${fg}">${init}</div>${online?`<span style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#7fc9a4;border:2px solid #fff"></span>`:''}</div>`;}
+function roleLabel(r){return{freshman:'Freshman',sophomore:'Sophomore',junior:'Junior',senior:'Senior',mentor:'Mentor',lead_mentor:'Lead Mentor',admin:'Admin'}[r]||r;}
+
+async function loadConvos() {
+  try {
+    convos = await pb.get('/messages');
+    renderConvoList();
+    // If ?to param exists but not in convos, add a temp entry
+    if (activeId && !convos.find(c=>c.id===activeId) && activeName) {
+      convos.unshift({ id: activeId, name: activeName, last_message: '', is_online: false });
+    }
+    renderConvoList();
+  } catch(e) {}
+}
+
+async function openConvo(id, name) {
+  activeId = id; activeName = name;
+  msgs = [];
+  renderAll();
+  await loadMsgs();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    if (!activeId) return;
+    try {
+      const fresh = await pb.get(`/messages/${activeId}`);
+      if (fresh.length !== msgs.length) { msgs = fresh; renderMsgs(); }
+    } catch(e) {}
+  }, 4000);
+}
+
+async function loadMsgs() {
+  if (!activeId) return;
+  try { msgs = await pb.get(`/messages/${activeId}`); renderMsgs(); }
+  catch(e) {}
+}
+
+async function sendMsg() {
+  if (!draft.trim() || !activeId) return;
+  const text = draft; draft = '';
+  renderInputArea();
+  try {
+    const m = await pb.post(`/messages/${activeId}`, { text });
+    msgs.push(m);
+    renderMsgs();
+    await loadConvos();
+  } catch(e) { showToast('Failed to send'); draft = text; renderInputArea(); }
+}
+
+function renderConvoList() {
+  const el = document.getElementById('convo-list');
+  if (!el) return;
+  if (!convos.length) { el.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px">No conversations yet.<br/>Connect with a mentor to start chatting.</div>`; return; }
+  el.innerHTML = convos.map(c=>`
+    <div class="convo-item ${activeId===c.id?'active':''}" onclick="openConvo(${c.id},'${c.name}')">
+      ${ava(c.name,42,c.is_online)}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+          <strong style="font-size:13.5px">${c.name}</strong>
+          ${c.unread?`<span style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;min-width:18px;text-align:center">${c.unread}</span>`:''}
+        </div>
+        <div style="font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${c.last_message||'Start a conversation'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderMsgs() {
+  const el = document.getElementById('chat-msgs');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="text-align:center;font-size:11px;color:var(--ink-3);padding:4px 0">Conversation with ${activeName}</div>
+    ${msgs.map(m=>`
+      <div class="bubble ${m.sender_id===me?.id?'bubble-me':'bubble-them'}" style="animation:fade-up .2s both">
+        ${m.text}
+        <div style="font-size:10.5px;opacity:.5;margin-top:3px;text-align:${m.sender_id===me?.id?'right':'left'}">${timeAgo(m.created_at)}</div>
+      </div>`).join('')}
+    <div id="chat-end"></div>`;
+  setTimeout(() => document.getElementById('chat-end')?.scrollIntoView({behavior:'smooth'}), 50);
+}
+
+function renderInputArea() {
+  const el = document.getElementById('chat-input');
+  if (el) el.value = draft;
+}
+
+function renderAll() {
+  document.getElementById('root').innerHTML = `
+  <div class="with-sidebar">
+    ${sidebarHTML('messages')}
+    <div class="snav-content">
+  <div class="msg-shell">
+    <section class="page-hero msg-hero">
+      <div style="position:relative;z-index:1">
+        <div class="tag tag-lav" style="margin-bottom:14px">Direct conversations</div>
+        <h1 class="section-title">Messages</h1>
+        <p class="section-subtitle">Stay in touch with mentors and peers in the same polished white-and-blue workspace.</p>
+      </div>
+    </section>
+
+    <div class="msg-layout">
+    <!-- Conversation list -->
+    <div class="convo-list">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--line)">
+        <div class="serif" style="font-size:20px;margin-bottom:2px">Messages</div>
+        <div style="font-size:12px;color:var(--ink-3)">Your conversations</div>
+      </div>
+      <div id="convo-list">
+        <div style="display:flex;justify-content:center;padding:40px"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+    <!-- Chat pane -->
+    <div class="chat-pane">
+      ${activeId ? `
+      <div style="padding:14px 20px;border-bottom:1px solid var(--line);background:#fff;display:flex;align-items:center;gap:12px">
+        ${ava(activeName,40)}
+        <div>
+          <div style="font-weight:600;font-size:14.5px;cursor:pointer" onclick="location.href='/profile.html?id=${activeId}'">${activeName}</div>
+          <div style="font-size:12px;color:var(--ink-3)">NUST community member</div>
+        </div>
+      </div>
+      <div class="chat-msgs" id="chat-msgs">
+        <div style="display:flex;justify-content:center;padding:40px"><span class="spinner"></span></div>
+      </div>
+      <div style="padding:12px 16px;border-top:1px solid var(--line);background:#fff;display:flex;gap:8px;align-items:center">
+        <input id="chat-input" class="input" placeholder="Type a message…" value="${draft}"
+          style="padding:10px 14px;font-size:13.5px"
+          oninput="draft=this.value"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"/>
+        <button class="btn btn-primary" onclick="sendMsg()" style="padding:10px 14px;flex-shrink:0">${ic('send',15,'white')}</button>
+      </div>` : `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink-3);gap:12px">
+        ${ic('message',48,'var(--ink-3)',1.2)}
+        <div style="font-size:16px;font-weight:500">Select a conversation</div>
+        <div style="font-size:13px">or <a href="/mentors.html" style="color:var(--accent-ink);font-weight:600">find a mentor</a> to start chatting</div>
+      </div>`}
+    </div>
+    </div>
+  </div>
+  </div></div>`;
+
+  renderConvoList();
+  if (activeId) {
+    renderMsgs();
+    loadMsgs();
+  }
+}
+
+renderAll();
+loadConvos();
+if (activeId) openConvo(activeId, activeName);
+</script>
+</body>
+</html>

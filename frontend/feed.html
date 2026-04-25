@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Home – Peer Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:   #2563EB;
+  --blue2:  #1D4ED8;
+  --blue-lt:#EFF6FF;
+  --blue-md:#DBEAFE;
+  --navy:   #0D1B2A;
+  --white:  #FFFFFF;
+  --bg:     #F4F7FF;
+  --offwht: #F8FAFF;
+  --slate:  #4B5C73;
+  --muted:  #8899B0;
+  --border: #E4EAF2;
+  --border2:#CBD5E1;
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--navy);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ─── LAYOUT ─── */
+.app {
+  display: grid;
+  grid-template-rows: 62px 1fr;
+  grid-template-columns: 220px 1fr 280px;
+  height: 100vh;
+}
+
+/* ─── TOP NAV ─── */
+.topnav {
+  grid-column: 1 / -1;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px 0 0;
+  gap: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+.topnav-logo {
+  width: 220px; flex-shrink: 0;
+  display: flex; align-items: center;
+  padding: 0 20px;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  text-decoration: none;
+  gap: 9px;
+}
+.topnav-logo-wm {
+  font-size: 16px; font-weight: 700;
+  color: var(--navy); letter-spacing: -.3px;
+}
+
+.search-bar {
+  flex: 1; max-width: 380px;
+  display: flex; align-items: center; gap: 9px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 14px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.search-bar:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+  background: white;
+}
+.search-bar input {
+  flex: 1; border: none; outline: none;
+  background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; color: var(--navy);
+}
+.search-bar input::placeholder { color: var(--muted); }
+.search-kbd {
+  font-size: 11px; color: var(--muted);
+  background: white; border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px;
+  font-family: monospace;
+}
+
+.topnav-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border);
+  background: transparent; cursor: pointer;
+  color: var(--slate); text-decoration: none;
+  transition: border-color .18s, background .18s, color .18s;
+}
+.icon-btn:hover { border-color: var(--blue); background: var(--blue-lt); color: var(--blue); }
+
+.new-post-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border: none; border-radius: 9px;
+  background: var(--blue); color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(37,99,235,.3);
+  transition: background .18s, transform .15s;
+}
+.new-post-btn:hover { background: var(--blue2); transform: translateY(-1px); }
+
+.user-chip {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 12px 5px 5px;
+  border: 1.5px solid var(--border);
+  border-radius: 100px; cursor: pointer;
+  transition: border-color .18s;
+}
+.user-chip:hover { border-color: var(--blue-md); }
+.user-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), #60A5FA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white;
+}
+.user-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex; flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px; font-weight: 500;
+  color: var(--slate);
+  cursor: pointer; text-decoration: none;
+  transition: background .15s, color .15s;
+  border: none; background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg); color: var(--navy); }
+.nav-item.active { background: var(--blue); color: white; font-weight: 700; }
+.nav-item.active svg { stroke: white; }
+
+.nav-section {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted); padding: 14px 12px 6px;
+}
+
+.journey-card {
+  margin-top: auto;
+  background: linear-gradient(135deg, var(--blue-lt), var(--blue-md));
+  border: 1.5px solid #BFDBFE;
+  border-radius: 14px; padding: 16px;
+}
+
+/* ─── MAIN FEED ─── */
+.main {
+  overflow-y: auto;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.feed-tabs {
+  display: flex; align-items: center; gap: 6px;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.tab {
+  padding: 7px 16px; border-radius: 8px;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--slate); cursor: pointer; border: none;
+  background: transparent; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background .15s, color .15s;
+}
+.tab:hover { background: var(--bg); color: var(--navy); }
+.tab.active { background: var(--navy); color: white; }
+
+.sort-btn {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--slate);
+  border: 1.5px solid var(--border); background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.sort-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+.composer {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+  flex-shrink: 0;
+}
+.composer:hover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+.composer-av {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), #60A5FA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.composer input {
+  flex: 1; border: none; outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; color: var(--navy); cursor: pointer;
+  background: transparent;
+}
+.composer input::placeholder { color: var(--muted); }
+.composer-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.comp-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600;
+  cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background .15s, color .15s;
+  border: 1.5px solid var(--border); background: transparent; color: var(--slate);
+}
+.comp-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 24px; text-align: center;
+  background: white; border: 1.5px solid var(--border); border-radius: 16px;
+}
+.empty-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--blue-lt); border: 1.5px solid var(--blue-md);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 18px;
+}
+.empty-h { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.empty-p { font-size: 14px; color: var(--slate); max-width: 280px; line-height: 1.65; }
+.empty-cta {
+  margin-top: 20px; padding: 10px 24px; border: none; border-radius: 9px;
+  background: var(--blue); color: white;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 700; cursor: pointer;
+  transition: background .18s;
+}
+.empty-cta:hover { background: var(--blue2); }
+
+/* ─── RIGHT PANEL ─── */
+.right-panel {
+  background: var(--offwht);
+  border-left: 1px solid var(--border);
+  padding: 20px 18px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.panel-card {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 18px;
+}
+.panel-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.panel-card-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+.see-all { font-size: 12px; font-weight: 600; color: var(--blue); text-decoration: none; }
+.see-all:hover { text-decoration: underline; }
+.empty-panel { font-size: 13px; color: var(--muted); text-align: center; padding: 10px 0; }
+
+.mentor-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.mentor-row:last-child { border-bottom: none; }
+.mr-av {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white; flex-shrink: 0;
+  position: relative;
+}
+.mr-name { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+.mr-dept { font-size: 11.5px; color: var(--muted); }
+.mr-tag {
+  margin-left: auto; padding: 3px 10px; border-radius: 100px;
+  font-size: 11px; font-weight: 600;
+  background: var(--blue-lt); color: var(--blue);
+}
+
+.event-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.event-row:last-child { border-bottom: none; }
+.event-date {
+  flex-shrink: 0; width: 42px; height: 46px;
+  background: var(--blue-lt); border: 1px solid var(--blue-md);
+  border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ev-month { font-size: 9px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .5px; }
+.ev-day { font-size: 18px; font-weight: 800; color: var(--navy); line-height: 1; }
+.ev-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+.ev-sub { font-size: 11.5px; color: var(--muted); }
+
+.topic-pill {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+  background: var(--bg); color: var(--slate);
+  border: 1px solid var(--border);
+  margin: 4px 4px 0 0; cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.topic-pill:hover { border-color: var(--blue); background: var(--blue-lt); color: var(--blue); }
+
+/* ─── POST CARDS ─── */
+.post-card {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.post-card:hover { border-color: var(--blue-md); box-shadow: 0 2px 12px rgba(37,99,235,.06); }
+
+.act-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid var(--border);
+  background: transparent; color: var(--slate);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.act-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.act-btn.liked { border-color: #FECDD3; background: #FFF1F2; color: #E11D48; }
+.act-btn.saved { border-color: var(--blue-md); background: var(--blue-lt); color: var(--blue); }
+
+.reply-input {
+  flex: 1; padding: 9px 14px; border-radius: 9px;
+  border: 1.5px solid var(--border); outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; color: var(--navy); background: var(--bg);
+  transition: border-color .15s;
+}
+.reply-input:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+
+.send-btn {
+  padding: 9px 14px; border-radius: 9px;
+  background: var(--blue); color: white; border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.send-btn:hover { background: var(--blue2); }
+
+/* ─── MODAL / OVERLAYS ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(13,27,42,.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: white; border-radius: 18px;
+  width: 100%; max-width: 560px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.modal-close-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1.5px solid var(--border); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--slate); transition: border-color .15s, color .15s;
+}
+.modal-close-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+.comp-modal-input {
+  width: 100%; padding: 12px 16px; border-radius: 10px;
+  border: 1.5px solid var(--border); outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; font-weight: 500; color: var(--navy);
+  margin-bottom: 10px; background: var(--bg);
+  transition: border-color .15s, background .15s;
+}
+.comp-modal-input:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+
+.comp-modal-textarea {
+  width: 100%; padding: 12px 16px; border-radius: 10px;
+  border: 1.5px solid var(--border); outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; color: var(--navy); resize: vertical;
+  line-height: 1.55; background: var(--bg);
+  transition: border-color .15s, background .15s;
+}
+.comp-modal-textarea:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+
+/* ─── SPINNER / TOAST ─── */
+.spinner {
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  padding: 12px 20px; background: var(--navy); color: white;
+  border-radius: 10px; font-size: 13.5px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  animation: toastUp .3s ease both;
+  pointer-events: none;
+}
+@keyframes toastUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ TOP NAV ══ -->
+  <header class="topnav">
+    <a href="/feed.html" class="topnav-logo">
+      <svg width="38" height="26" viewBox="0 0 140 90" fill="none">
+        <defs>
+          <linearGradient id="lgnav" x1="0" y1="0" x2="140" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2563EB"/>
+            <stop offset="50%" stop-color="#1A3A8F"/>
+            <stop offset="100%" stop-color="#0D1B2A"/>
+          </linearGradient>
+        </defs>
+        <path d="M 14 70 C 14 18, 62 18, 70 44" stroke="url(#lgnav)" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M 70 44 C 78 18, 126 18, 126 70" stroke="url(#lgnav)" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <circle cx="70" cy="44" r="10" stroke="url(#lgnav)" stroke-width="7" fill="white"/>
+        <circle cx="14" cy="70" r="10" fill="#2563EB"/>
+        <circle cx="126" cy="70" r="10" fill="#0D1B2A"/>
+      </svg>
+      <span class="topnav-logo-wm">Peer Bridge</span>
+    </a>
+
+    <div class="search-bar">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#8899B0" stroke-width="1.6" stroke-linecap="round">
+        <circle cx="6.5" cy="6.5" r="5"/><path d="M11 11l3 3"/>
+      </svg>
+      <input type="text" id="search-inp" placeholder="Search posts, mentors, resources…" oninput="debounceSearch(this.value)"/>
+      <span class="search-kbd">⌘K</span>
+    </div>
+
+    <div class="topnav-right">
+      <a href="/messages.html" class="icon-btn">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M14.5 10.5a1 1 0 01-1 1H4L1 14.5V3a1 1 0 011-1h11.5a1 1 0 011 1v7.5z"/>
+        </svg>
+      </a>
+      <button class="icon-btn" style="position:relative;">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M13.5 11.5H3.5L2 9V5a6.5 6.5 0 0113 0v4l-1.5 2.5z"/><path d="M6.5 11.5a2 2 0 004 0"/>
+        </svg>
+        <span style="position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#EF4444;border:1.5px solid white;"></span>
+      </button>
+
+      <button class="new-post-btn" onclick="openComposerModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <path d="M7 2v10M2 7h10"/>
+        </svg>
+        New post
+      </button>
+
+      <div class="user-chip" onclick="location.href='/profile.html'">
+        <div class="user-av" id="user-av-nav">?</div>
+        <div>
+          <div class="user-name" id="user-name-nav">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="nav-section">Main</div>
+    <a href="/feed.html" class="nav-item active">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 7L8.5 2 15 7v8H11v-4H6v4H2z"/></svg>
+      Home
+    </a>
+    <a href="/mentors.html" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8.5" cy="6" r="3"/><path d="M2 15.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg>
+      Mentors
+    </a>
+    <a href="/resources.html" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 15.5A2 2 0 015 13.5H15"/><path d="M5 1.5H15v14H5A2 2 0 013 13.5v-10A2 2 0 015 1.5z"/></svg>
+      Resources
+    </a>
+    <a href="/events.html" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="2" width="13" height="13" rx="2"/><line x1="11" y1="0.5" x2="11" y2="3.5"/><line x1="6" y1="0.5" x2="6" y2="3.5"/><line x1="2" y1="6.5" x2="15" y2="6.5"/></svg>
+      Events
+    </a>
+    <a href="/messages.html" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 10a1 1 0 01-1 1H4L1 14V3a1 1 0 011-1h11.5a1 1 0 011 1v7z"/></svg>
+      Messages
+    </a>
+    <a href="#" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 3h12v18l-6-4-6 4V3Z" transform="scale(0.85) translate(1,1)"/></svg>
+      Saved
+    </a>
+
+    <div id="requests-nav-item" style="display:none">
+      <div class="nav-section" style="margin-top:8px;">Mentorship</div>
+      <button class="nav-item" onclick="openRequestsModal()">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8.5" cy="6" r="3"/><path d="M2 15.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M13 1l2 2-2 2"/><path d="M15 3H11"/></svg>
+        Requests
+        <span id="requests-badge" style="display:none;margin-left:auto;background:#EF4444;color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;"></span>
+      </button>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px;">Account</div>
+    <a href="/profile.html" class="nav-item">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8.5" cy="6" r="3"/><path d="M2 15.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg>
+      My Profile
+    </a>
+    <div class="journey-card" style="margin-top:auto;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="sidebar-av" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#60A5FA);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0;">?</div>
+        <div>
+          <div id="sidebar-name" style="font-size:14px;font-weight:800;color:var(--navy);">Loading…</div>
+          <div id="sidebar-meta" style="font-size:11.5px;color:var(--slate);">NUST · Student</div>
+        </div>
+      </div>
+      <button onclick="pb.clearAuth();location.href='/index.html'"
+        style="width:100%;padding:8px;border:1.5px solid var(--border2);border-radius:8px;background:white;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--slate);cursor:pointer;transition:border-color .15s,color .15s;"
+        onmouseover="this.style.borderColor='#EF4444';this.style.color='#EF4444';"
+        onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--slate)';">
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN FEED ══ -->
+  <main class="main">
+    <div class="feed-tabs">
+      <button class="tab active" data-filter="For you">For you</button>
+      <button class="tab" data-filter="Academic">Academic</button>
+      <button class="tab" data-filter="Career">Career</button>
+      <button class="tab" data-filter="Resources">Resources</button>
+      <button class="tab" data-filter="Events">Events</button>
+      <button class="sort-btn">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M1 3h11M3 6.5h7M5 10h3"/>
+        </svg>
+        Sort: Recent
+      </button>
+    </div>
+
+    <div class="composer" onclick="openComposerModal()">
+      <div class="composer-av" id="composer-av">?</div>
+      <input type="text" placeholder="Ask a question, share a resource, or post an update…" readonly/>
+      <div class="composer-actions" onclick="event.stopPropagation()">
+        <button class="comp-btn" onclick="composerTag='Academic Help';openComposerModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <circle cx="6.5" cy="6.5" r="5.5"/><path d="M6.5 8V6.5a2 2 0 10-2-2"/>
+            <circle cx="6.5" cy="9.5" r=".5" fill="currentColor"/>
+          </svg>
+          Ask
+        </button>
+        <button class="comp-btn" onclick="composerTag='Resources';openComposerModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M2 6.5h9M7.5 2l4 4.5-4 4.5"/>
+          </svg>
+          Share
+        </button>
+      </div>
+    </div>
+
+    <div id="post-list">
+      <div style="display:flex;justify-content:center;padding:60px;">
+        <div class="spinner" style="width:32px;height:32px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <aside class="right-panel">
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title">Top mentors this week</div>
+        <a href="/mentors.html" class="see-all">See all</a>
+      </div>
+      <div id="mentor-list">
+        <div class="empty-panel">Loading…</div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title">Upcoming</div>
+        <a href="/events.html" class="see-all">See all</a>
+      </div>
+      <div id="event-list">
+        <div class="empty-panel">Loading…</div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-card-header">
+        <div class="panel-card-title">Trending topics</div>
+      </div>
+      <div>
+        <span class="topic-pill">#FYP</span>
+        <span class="topic-pill">#Internships</span>
+        <span class="topic-pill">#GRE</span>
+        <span class="topic-pill">#MachineLearning</span>
+        <span class="topic-pill">#CampusPlacements</span>
+        <span class="topic-pill">#SEECS</span>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ══ COMPOSER MODAL ══ -->
+<div id="composer-modal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeComposerModal()">
+  <div class="modal-box">
+    <div style="padding:18px 22px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:800;color:var(--navy);">New post</div>
+      <button class="modal-close-btn" onclick="closeComposerModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>
+      </button>
+    </div>
+    <div style="padding:22px;">
+      <div id="comp-tag-row" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;"></div>
+      <input id="comp-title" class="comp-modal-input" placeholder="What's your question or update?" autocomplete="off"/>
+      <textarea id="comp-body" class="comp-modal-textarea" rows="5" placeholder="Add context about the course, semester, or what you've tried so far..."></textarea>
+      <div style="margin-top:12px;padding:14px;border:1.5px dashed var(--border2);border-radius:12px;background:var(--bg);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--navy);">Optional image</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">Add a JPG, PNG, GIF, or WebP image to make your post feel more authentic.</div>
+          </div>
+          <label for="comp-image" style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:9px;border:1.5px solid var(--border);background:white;color:var(--slate);font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            Choose image
+          </label>
+        </div>
+        <input id="comp-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;" onchange="handleComposerImageChange(event)"/>
+        <div id="comp-image-meta" style="display:none;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:10px;background:white;border:1px solid var(--border);">
+          <div style="min-width:0;">
+            <div id="comp-image-name" style="font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            <div id="comp-image-size" style="font-size:11.5px;color:var(--muted);margin-top:2px;"></div>
+          </div>
+          <button type="button" onclick="clearComposerImage()" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--slate);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Remove</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:16px;border-top:1.5px solid var(--border);">
+        <div style="flex:1;"></div>
+        <button onclick="closeComposerModal()"
+          style="padding:9px 18px;border-radius:9px;border:1.5px solid var(--border);background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:600;color:var(--slate);cursor:pointer;">
+          Cancel
+        </button>
+        <button onclick="submitPost()"
+          style="padding:9px 22px;border-radius:9px;background:var(--blue);color:white;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;"
+          onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
+          Post
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHAT OVERLAY ══ -->
+<div id="chat-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(13,27,42,.4);backdrop-filter:blur(2px);" onclick="if(event.target===this)closeChat()">
+  <div style="position:absolute;right:0;top:0;bottom:0;width:380px;background:white;border-left:1.5px solid var(--border);box-shadow:-8px 0 40px rgba(0,0,0,.1);display:flex;flex-direction:column;">
+    <div style="padding:16px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:12px;">
+      <div id="chat-av" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#60A5FA);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;flex-shrink:0;">?</div>
+      <div style="flex:1;">
+        <div id="chat-name" style="font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;">Chat</div>
+        <div style="font-size:11.5px;color:var(--muted);">usually replies in ~1h</div>
+      </div>
+      <button class="modal-close-btn" onclick="closeChat()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>
+      </button>
+    </div>
+    <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg);">
+      <div style="text-align:center;font-size:11px;color:var(--muted);">Conversation started · today</div>
+    </div>
+    <div style="padding:12px;border-top:1.5px solid var(--border);display:flex;gap:8px;align-items:center;">
+      <input id="chat-input" class="reply-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button onclick="sendChat()" class="send-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REPORT MODAL ══ -->
+<div id="report-modal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeReportModal()">
+  <div class="modal-box" style="max-width:420px;">
+    <div style="padding:18px 22px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:17px;font-weight:800;color:var(--navy);">Report content</div>
+      <button class="modal-close-btn" onclick="closeReportModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>
+      </button>
+    </div>
+    <div style="padding:22px;">
+      <p style="font-size:13.5px;color:var(--slate);margin-bottom:16px;">Why are you reporting this?</p>
+      <div id="report-reason-row" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+      <button id="report-submit-btn" onclick="submitReport()"
+        style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue);color:white;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;"
+        onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
+        Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+pb.requireAuth();
+const me = pb.getUser();
+
+// ── State
+let posts = [], filter = 'For you', openReplies = {}, replyDrafts = {};
+let composerTag = 'Academic Help';
+let chatWith = null, chatUser = null, chatMsgs = [], chatPollInterval = null;
+let events = [], mentors = [];
+
+const TAG_OPTS = ['Academic Help', 'Career & Internships', 'Resources', 'Events & Societies'];
+
+// ── Init user info across the page
+function initUserInfo() {
+  if (!me) return;
+  const init = (me.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const imgStyle = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+
+  const navAv = document.getElementById('user-av-nav');
+  if (navAv) { navAv.innerHTML = me.profile_image ? `<img src="${me.profile_image}" style="${imgStyle}"/>` : init; }
+
+  const sideAv = document.getElementById('sidebar-av');
+  if (sideAv) {
+    sideAv.style.overflow = 'hidden';
+    sideAv.innerHTML = me.profile_image ? `<img src="${me.profile_image}" style="${imgStyle}"/>` : init;
+  }
+
+  const compAv = document.getElementById('composer-av');
+  if (compAv) {
+    compAv.style.overflow = 'hidden';
+    compAv.innerHTML = me.profile_image ? `<img src="${me.profile_image}" style="${imgStyle}"/>` : init;
+  }
+
+  set('user-name-nav', me.name || 'You');
+  set('sidebar-name', me.name || 'You');
+  set('sidebar-meta', (me.department || 'NUST') + ' · ' + roleLabel(me.role || 'student'));
+}
+
+function roleLabel(r) {
+  return { freshman:'Freshman', sophomore:'Sophomore', junior:'Junior', senior:'Senior',
+           mentor:'Mentor', lead_mentor:'Lead Mentor', admin:'Admin', student:'Student' }[r] || r;
+}
+
+// ── Toast
+function showToast(msg, dur = 3000) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), dur);
+}
+
+// ── Avatar HTML
+function avaHTML(name = '?', size = 36) {
+  const palettes = [['#DBEAFE','#1D4ED8'],['#EDE9FE','#6D28D9'],['#D1FAE5','#047857'],
+                    ['#FEE2E2','#B91C1C'],['#FEF3C7','#B45309'],['#FCE7F3','#9D174D']];
+  const parts = (name || '?').split(' ');
+  const init = (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+  let h = 0; for (let i = 0; i < (name || '').length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  const [bg, fg] = palettes[Math.abs(h) % palettes.length];
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};display:inline-flex;align-items:center;justify-content:center;font-size:${Math.round(size*.38)}px;font-weight:800;color:${fg};flex-shrink:0;">${init}</div>`;
+}
+
+// ── Tag pill
+function tagPillHTML(tag) {
+  const map = {
+    'Academic Help':       ['#FEF3C7','#92400E'],
+    'Career & Internships':['#EDE9FE','#5B21B6'],
+    'Resources':           ['#D1FAE5','#065F46'],
+    'Events & Societies':  ['#FFE4CC','#9A3412'],
+  };
+  const [bg, fg] = map[tag] || ['#F3F4F6','#374151'];
+  return `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11.5px;font-weight:600;background:${bg};color:${fg};">${tag}</span>`;
+}
+
+// ── Time ago
+function timeAgo(dateStr) {
+  const sec = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (sec < 60) return 'just now';
+  if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+  return Math.floor(sec / 86400) + 'd ago';
+}
+
+function metaStr(p) {
+  const role = p.author_role ? roleLabel(p.author_role) : '';
+  const dept = p.department || '';
+  const year = p.graduation_year ? `'${String(p.graduation_year).slice(-2)}` : '';
+  return [role, dept + (year ? ' ' + year : '')].filter(Boolean).join(' · ');
+}
+
+// ── Post card HTML
+function postCardHTML(p) {
+  const rep = p.replies || [];
+  const open = openReplies[p.id];
+  const isMentor = ['mentor', 'lead_mentor'].includes(p.author_role);
+  const isOther = p.author_id !== me?.id;
+
+  if (p.is_hidden) {
+    return `
+<div class="post-card" data-id="${p.id}" style="text-align:center;padding:28px 20px;">
+  <p style="font-size:14px;color:var(--muted);font-style:italic;">This post has been flagged by the community.</p>
+</div>`;
+  }
+
+  return `
+<div class="post-card" data-id="${p.id}">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    ${avaHTML(p.author_name, 40)}
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+        <span style="font-size:14px;font-weight:700;cursor:pointer;color:var(--navy);" onclick="location.href='/profile.html?id=${p.author_id}'">${p.author_name}</span>
+        ${isMentor ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:var(--blue-lt);color:var(--blue);">MENTOR</span>` : ''}
+        <span style="font-size:12px;color:var(--muted);">${metaStr(p)}</span>
+        <span style="font-size:12px;color:var(--muted);">· ${timeAgo(p.created_at)}</span>
+      </div>
+      <div style="margin-top:5px;">${tagPillHTML(p.tag)}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+      <button class="act-btn bm-btn${p.bookmarked ? ' saved' : ''}" data-id="${p.id}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="${p.bookmarked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12v18l-6-4-6 4V3Z"/></svg>
+        ${p.bookmarked ? 'Saved' : 'Save'}
+      </button>
+      ${isOther ? `
+      <div style="position:relative;">
+        <button class="act-btn more-btn" data-id="${p.id}" data-authorid="${p.author_id}" title="More options"
+          style="padding:6px 10px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+        <div class="more-menu" id="more-menu-${p.id}" style="display:none;position:absolute;right:0;top:36px;background:white;border:1.5px solid var(--border);border-radius:10px;min-width:140px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:50;overflow:hidden;">
+          <button onclick="openReportModal('post',${p.id});closeAllMenus()" style="width:100%;padding:10px 14px;text-align:left;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#DC2626;cursor:pointer;display:flex;align-items:center;gap:8px;"
+            onmouseover="this.style.background='#FFF1F2'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18"/><path d="M10.5 10.677a2 2 0 002.823 2.823"/><path d="M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.35M12 6c3.972 0 7.071 3.009 9 6a16.09 16.09 0 01-1.432 1.97"/><path d="M2 2l20 20"/></svg>
+            Report post
+          </button>
+        </div>
+      </div>` : ''}
+    </div>
+  </div>
+
+  <h3 style="font-size:17px;font-weight:700;color:var(--navy);margin:14px 0 6px;line-height:1.35;">${p.title}</h3>
+  ${p.body ? `<p style="font-size:14px;line-height:1.6;color:var(--slate);margin:0;">${p.body}</p>` : ''}
+  ${p.image_path ? `<div style="margin-top:14px;"><img src="${p.image_path}" alt="Post image" style="display:block;width:100%;max-height:360px;object-fit:cover;border-radius:14px;border:1.5px solid var(--border);background:var(--bg);"/></div>` : ''}
+
+  <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border);">
+    <button class="act-btn like-btn${p.liked ? ' liked' : ''}" data-id="${p.id}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="${p.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10Z"/></svg>
+      ${p.likes_count}
+    </button>
+    <button class="act-btn reply-toggle-btn" data-id="${p.id}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a8 8 0 01-8 8 8 8 0 01-3.5-.8L4 21l1.3-4.5A8 8 0 015 12a8 8 0 018-8 8 8 0 018 8Z"/></svg>
+      ${p.comments_count} ${p.comments_count === 1 ? 'reply' : 'replies'}
+    </button>
+    ${isOther ? `<button class="act-btn msg-btn" data-id="${p.author_id}" data-name="${p.author_name}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a8 8 0 01-8 8 8 8 0 01-3.5-.8L4 21l1.3-4.5A8 8 0 015 12a8 8 0 018-8 8 8 0 018 8Z"/></svg>
+      Message
+    </button>` : ''}
+    <div style="flex:1;"></div>
+    <button class="act-btn" onclick="navigator.clipboard?.writeText(location.origin+'?p=${p.id}').then(()=>showToast('Link copied!'))">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
+      Share
+    </button>
+  </div>
+
+  ${open ? `
+  <div style="margin-top:14px;padding-top:14px;border-top:1.5px dashed var(--border);">
+    ${rep.map(r => `
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      ${avaHTML(r.author_name, 30)}
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12.5px;flex-wrap:wrap;">
+          <strong style="color:var(--navy);">${r.author_name}</strong>
+          <span style="color:var(--muted);">· ${roleLabel(r.author_role)} · ${timeAgo(r.created_at)}</span>
+          ${['mentor','lead_mentor'].includes(r.author_role) ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:var(--blue-lt);color:var(--blue);">MENTOR</span>` : ''}
+        </div>
+        <div style="font-size:13.5px;line-height:1.5;margin-top:3px;color:var(--navy);">${r.text}</div>
+      </div>
+    </div>`).join('')}
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+      ${avaHTML(me?.name || '?', 30)}
+      <input class="reply-input" data-id="${p.id}" value="${(replyDrafts[p.id] || '').replace(/"/g, '&quot;')}"
+        placeholder="Write a helpful reply…"
+        oninput="replyDrafts[${p.id}]=this.value"
+        onkeydown="if(event.key==='Enter')postReply(${p.id})"/>
+      <button class="send-btn" onclick="postReply(${p.id})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>` : ''}
+</div>`;
+}
+
+// ── Render post list
+function filteredPosts() {
+  if (filter === 'For you') return posts;
+  return posts.filter(p => p.tag.toLowerCase().includes(filter.toLowerCase()));
+}
+
+function renderPostList() {
+  const el = document.getElementById('post-list');
+  if (!el) return;
+  const fp = filteredPosts();
+  if (!fp.length) {
+    el.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round">
+          <path d="M4 24a3 3 0 013-3H24"/><path d="M7 3H24v22H7A3 3 0 014 22V6a3 3 0 013-3z"/>
+          <line x1="9" y1="10" x2="19" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/>
+        </svg>
+      </div>
+      <div class="empty-h">Your feed is quiet right now</div>
+      <p class="empty-p">Be the first to ask a question or share something useful with your NUST community.</p>
+      <button class="empty-cta" onclick="openComposerModal()">Post something →</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML = fp.map(postCardHTML).join('');
+  attachPostListeners();
+}
+
+function attachPostListeners() {
+  document.querySelectorAll('.like-btn').forEach(b => b.onclick = () => toggleLike(Number(b.dataset.id)));
+  document.querySelectorAll('.bm-btn').forEach(b => b.onclick = () => toggleBookmark(Number(b.dataset.id)));
+  document.querySelectorAll('.reply-toggle-btn').forEach(b => b.onclick = () => toggleReplies(Number(b.dataset.id)));
+  document.querySelectorAll('.msg-btn').forEach(b => b.onclick = () => openChat(Number(b.dataset.id), b.dataset.name));
+  document.querySelectorAll('.more-btn').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById('more-menu-' + b.dataset.id);
+    if (!menu) return;
+    const wasOpen = menu.style.display !== 'none';
+    closeAllMenus();
+    if (!wasOpen) menu.style.display = 'block';
+  });
+}
+
+function closeAllMenus() {
+  document.querySelectorAll('.more-menu').forEach(m => m.style.display = 'none');
+}
+document.addEventListener('click', closeAllMenus);
+
+// ── Report modal
+let reportTarget = null;
+const REPORT_REASONS = ['Spam', 'Harassment', 'Inappropriate', 'Misinformation'];
+let reportReason = REPORT_REASONS[0];
+
+function openReportModal(type, id) {
+  reportTarget = { type, id };
+  reportReason = REPORT_REASONS[0];
+  const modal = document.getElementById('report-modal');
+  if (modal) { modal.style.display = 'flex'; renderReportReasons(); }
+}
+
+function closeReportModal() {
+  reportTarget = null;
+  const modal = document.getElementById('report-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderReportReasons() {
+  const el = document.getElementById('report-reason-row');
+  if (!el) return;
+  el.innerHTML = REPORT_REASONS.map(r => `
+    <button onclick="reportReason='${r}';renderReportReasons()"
+      style="flex:1;padding:9px 6px;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid ${r===reportReason?'var(--navy)':'var(--border)'};background:${r===reportReason?'var(--navy)':'transparent'};color:${r===reportReason?'white':'var(--slate)'};transition:.15s;">
+      ${r}
+    </button>`).join('');
+}
+
+async function submitReport() {
+  if (!reportTarget) return;
+  const btn = document.getElementById('report-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+  try {
+    await pb.post('/reports', { target_type: reportTarget.type, target_id: reportTarget.id, reason: reportReason });
+    closeReportModal();
+    showToast('Report submitted. Thank you for keeping Peer Bridge safe.');
+  } catch(e) {
+    showToast(e.message || 'Failed to submit report');
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+  }
+}
+
+// ── Render right panel
+function renderMentors() {
+  const el = document.getElementById('mentor-list');
+  if (!el) return;
+  if (!mentors.length) { el.innerHTML = '<div class="empty-panel">No mentors found</div>'; return; }
+  const gradients = [
+    'linear-gradient(135deg,#2563EB,#60A5FA)',
+    'linear-gradient(135deg,#7C3AED,#A78BFA)',
+    'linear-gradient(135deg,#0D1B2A,#334155)',
+    'linear-gradient(135deg,#047857,#34D399)',
+  ];
+  el.innerHTML = mentors.slice(0, 4).map(m => {
+    const init = (m.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    let h = 0; for (let i = 0; i < (m.name || '').length; i++) h = (h * 31 + m.name.charCodeAt(i)) | 0;
+    const grad = gradients[Math.abs(h) % gradients.length];
+    return `
+    <div class="mentor-row" onclick="openChat(${m.id},'${m.name.replace(/'/g,'\\\'')}')" >
+      <div class="mr-av" style="background:${grad};">
+        ${init}
+        ${m.is_online ? `<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#22C55E;border:2px solid white;"></span>` : ''}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="mr-name">${m.name}${m.role === 'lead_mentor' ? ' <span style="color:var(--blue);">★</span>' : ''}</div>
+        <div class="mr-dept">${[m.department, m.graduation_year ? `'${String(m.graduation_year).slice(-2)}` : '', m.rating ? `⭐ ${m.rating}` : ''].filter(Boolean).join(' · ')}</div>
+      </div>
+      <span class="mr-tag">${m.role === 'lead_mentor' ? 'Lead' : 'Mentor'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderEvents() {
+  const el = document.getElementById('event-list');
+  if (!el) return;
+  if (!events.length) { el.innerHTML = '<div class="empty-panel">No upcoming events</div>'; return; }
+  el.innerHTML = events.slice(0, 3).map(e => {
+    const d = new Date(e.event_date);
+    return `
+    <div class="event-row">
+      <div class="event-date">
+        <div class="ev-month">${d.toLocaleString('en', { month: 'short' }).toUpperCase()}</div>
+        <div class="ev-day">${d.getDate()}</div>
+      </div>
+      <div>
+        <div class="ev-title">${e.title}</div>
+        <div class="ev-sub">${e.venue || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Like / Bookmark
+async function toggleLike(id) {
+  const p = posts.find(x => x.id === id); if (!p) return;
+  p.liked = !p.liked; p.likes_count += p.liked ? 1 : -1;
+  renderPostList();
+  try { await pb.post(`/posts/${id}/like`); }
+  catch(e) { p.liked = !p.liked; p.likes_count += p.liked ? 1 : -1; renderPostList(); }
+}
+
+async function toggleBookmark(id) {
+  const p = posts.find(x => x.id === id); if (!p) return;
+  p.bookmarked = !p.bookmarked; p.bookmarks_count = (p.bookmarks_count || 0) + (p.bookmarked ? 1 : -1);
+  renderPostList();
+  try { await pb.post(`/posts/${id}/bookmark`); }
+  catch(e) { p.bookmarked = !p.bookmarked; p.bookmarks_count += p.bookmarked ? 1 : -1; renderPostList(); }
+}
+
+// ── Replies
+async function toggleReplies(id) {
+  openReplies[id] = !openReplies[id];
+  if (openReplies[id] && !openReplies['loaded_' + id]) {
+    try {
+      const replies = await pb.get(`/posts/${id}/replies`);
+      const p = posts.find(x => x.id === id);
+      if (p) p.replies = replies;
+      openReplies['loaded_' + id] = true;
+    } catch(e) {}
+  }
+  renderPostList();
+}
+
+async function postReply(postId) {
+  const text = (replyDrafts[postId] || '').trim();
+  if (!text) return;
+  try {
+    const reply = await pb.post(`/posts/${postId}/replies`, { text });
+    const p = posts.find(x => x.id === postId);
+    if (p) { p.replies = p.replies || []; p.replies.push(reply); p.comments_count++; }
+    replyDrafts[postId] = '';
+    renderPostList();
+  } catch(e) { showToast('Failed to post reply'); }
+}
+
+// ── Composer modal
+function openComposerModal() {
+  const modal = document.getElementById('composer-modal');
+  if (modal) { modal.style.display = 'flex'; renderComposerTags(); }
+  setTimeout(() => document.getElementById('comp-title')?.focus(), 50);
+}
+
+function closeComposerModal() {
+  const modal = document.getElementById('composer-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderComposerTags() {
+  const row = document.getElementById('comp-tag-row');
+  if (!row) return;
+  row.innerHTML = TAG_OPTS.map(t => {
+    const active = t === composerTag;
+    return `<button onclick="composerTag='${t}';renderComposerTags()"
+      style="padding:6px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--navy)' : 'var(--border)'};background:${active ? 'var(--navy)' : 'transparent'};color:${active ? 'white' : 'var(--slate)'};transition:.15s;">${t}</button>`;
+  }).join('');
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return '0 KB';
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function handleComposerImageChange(event) {
+  const file = event?.target?.files?.[0];
+  const meta = document.getElementById('comp-image-meta');
+  const name = document.getElementById('comp-image-name');
+  const size = document.getElementById('comp-image-size');
+  if (!meta || !name || !size) return;
+  if (!file) {
+    meta.style.display = 'none';
+    name.textContent = '';
+    size.textContent = '';
+    return;
+  }
+  name.textContent = file.name;
+  size.textContent = formatFileSize(file.size);
+  meta.style.display = 'flex';
+}
+
+function clearComposerImage() {
+  const input = document.getElementById('comp-image');
+  if (input) input.value = '';
+  handleComposerImageChange({ target: { files: [] } });
+}
+
+async function submitPost() {
+  const title = document.getElementById('comp-title')?.value?.trim();
+  const body = document.getElementById('comp-body')?.value?.trim() || '';
+  const file = document.getElementById('comp-image')?.files?.[0] || null;
+  if (!title) { showToast('Please enter a title'); return; }
+  try {
+    const form = new FormData();
+    form.append('tag', composerTag);
+    form.append('title', title);
+    form.append('body', body);
+    if (file) form.append('image', file);
+    const post = await pb.upload('/posts', form);
+    post.replies = [];
+    posts.unshift(post);
+    closeComposerModal();
+    document.getElementById('comp-title').value = '';
+    document.getElementById('comp-body').value = '';
+    clearComposerImage();
+    renderPostList();
+    showToast(file ? 'Post with image shared!' : 'Post shared!');
+  } catch(e) { showToast('Failed to post: ' + e.message); }
+}
+
+// ── Feed tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    filter = tab.dataset.filter;
+    renderPostList();
+  });
+});
+
+// ── Chat
+async function openChat(userId, name) {
+  chatWith = userId; chatUser = name; chatMsgs = [];
+  const overlay = document.getElementById('chat-overlay');
+  if (overlay) overlay.style.display = 'block';
+  const nameEl = document.getElementById('chat-name');
+  const avEl = document.getElementById('chat-av');
+  if (nameEl) { nameEl.textContent = name; nameEl.onclick = () => location.href = `/profile.html?id=${userId}`; }
+  if (avEl) avEl.textContent = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  renderChatMsgs();
+  try { chatMsgs = await pb.get(`/messages/${userId}`); renderChatMsgs(); } catch(e) {}
+  if (chatPollInterval) clearInterval(chatPollInterval);
+  chatPollInterval = setInterval(async () => {
+    try {
+      const fresh = await pb.get(`/messages/${chatWith}`);
+      if (fresh.length !== chatMsgs.length) { chatMsgs = fresh; renderChatMsgs(); }
+    } catch(e) {}
+  }, 4000);
+}
+
+function renderChatMsgs() {
+  const el = document.getElementById('chat-msgs');
+  if (!el) return;
+  el.innerHTML = `<div style="text-align:center;font-size:11px;color:var(--muted);">Conversation started · today</div>` +
+    chatMsgs.map(m => `
+    <div style="align-self:${m.sender_id === me?.id ? 'flex-end' : 'flex-start'};max-width:78%;padding:10px 14px;border-radius:14px;background:${m.sender_id === me?.id ? 'var(--blue)' : 'white'};color:${m.sender_id === me?.id ? 'white' : 'var(--navy)'};font-size:14px;line-height:1.45;border:${m.sender_id !== me?.id ? '1.5px solid var(--border)' : 'none'};">
+      ${m.text}
+    </div>`).join('');
+  setTimeout(() => { el.scrollTop = el.scrollHeight; }, 50);
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input?.value?.trim();
+  if (!text || !chatWith) return;
+  input.value = '';
+  try {
+    const msg = await pb.post(`/messages/${chatWith}`, { text });
+    chatMsgs.push(msg);
+    renderChatMsgs();
+  } catch(e) { showToast('Message failed'); if (input) input.value = text; }
+}
+
+function closeChat() {
+  const overlay = document.getElementById('chat-overlay');
+  if (overlay) overlay.style.display = 'none';
+  chatWith = null; chatUser = null; chatMsgs = [];
+  if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; }
+}
+
+// ── Search
+let searchTimeout;
+async function debounceSearch(val) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    if (!val.trim()) { loadAll(); return; }
+    try { posts = await pb.get(`/posts?search=${encodeURIComponent(val)}`); renderPostList(); } catch(e) {}
+  }, 400);
+}
+
+// ── Load all data
+async function loadAll() {
+  try {
+    [posts, events, mentors] = await Promise.all([
+      pb.get('/posts'),
+      pb.get('/events?upcoming=true'),
+      pb.get('/users/mentors'),
+    ]);
+  } catch(e) { showToast('Failed to load feed: ' + e.message); }
+  renderPostList();
+  renderMentors();
+  renderEvents();
+}
+
+// ── Mentorship Requests (for mentors)
+let incomingRequests = [];
+
+async function loadIncomingRequests() {
+  if (!['mentor','lead_mentor'].includes(me?.role)) return;
+  try {
+    incomingRequests = await pb.get('/users/incoming-requests');
+    const nav = document.getElementById('requests-nav-item');
+    const badge = document.getElementById('requests-badge');
+    if (nav) nav.style.display = 'block';
+    if (badge) {
+      if (incomingRequests.length > 0) {
+        badge.textContent = incomingRequests.length;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+
+function openRequestsModal() {
+  let modal = document.getElementById('requests-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'requests-modal';
+    modal.className = 'modal-overlay';
+    modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+  renderRequestsModal(modal);
+}
+
+function renderRequestsModal(modal) {
+  const roleL = r => ({freshman:'Freshman',sophomore:'Sophomore',junior:'Junior',senior:'Senior',mentor:'Mentor',lead_mentor:'Lead Mentor'}[r]||r);
+  modal.innerHTML = `
+  <div class="modal-box" style="max-width:500px;">
+    <div style="padding:18px 22px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:800;color:var(--navy);">Mentorship Requests</div>
+      <button class="modal-close-btn" onclick="document.getElementById('requests-modal').style.display='none'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>
+      </button>
+    </div>
+    <div style="padding:18px 22px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px;">
+      ${incomingRequests.length === 0
+        ? `<div style="text-align:center;padding:32px;color:var(--muted);font-size:14px;">No pending requests</div>`
+        : incomingRequests.map(r => `
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg);">
+          ${r.profile_image
+            ? `<img src="${r.profile_image}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid var(--border);"/>`
+            : `<div style="width:42px;height:42px;border-radius:50%;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--blue);flex-shrink:0;">${(r.requester_name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>`
+          }
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:var(--navy);">${r.requester_name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${roleL(r.role)}${r.department ? ' · ' + r.department : ''}</div>
+            ${r.message ? `<div style="font-size:13px;color:var(--slate);line-height:1.4;margin-bottom:10px;">"${r.message}"</div>` : ''}
+            <div style="display:flex;gap:8px;">
+              <button onclick="respondRequest(${r.id},'accepted')"
+                style="flex:1;padding:8px;border-radius:8px;background:var(--blue);color:white;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+                Accept
+              </button>
+              <button onclick="respondRequest(${r.id},'declined')"
+                style="flex:1;padding:8px;border-radius:8px;background:transparent;color:#DC2626;border:1.5px solid #FECACA;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>`).join('')
+      }
+    </div>
+  </div>`;
+}
+
+async function respondRequest(reqId, status) {
+  try {
+    await pb.req('PATCH', `/users/mentorship-requests/${reqId}`, { status });
+    incomingRequests = incomingRequests.filter(r => r.id !== reqId);
+    const badge = document.getElementById('requests-badge');
+    if (badge) {
+      if (incomingRequests.length > 0) { badge.textContent = incomingRequests.length; }
+      else { badge.style.display = 'none'; }
+    }
+    const modal = document.getElementById('requests-modal');
+    if (modal) renderRequestsModal(modal);
+    showToast(status === 'accepted' ? 'Request accepted!' : 'Request declined.');
+  } catch(e) { showToast('Failed to respond'); }
+}
+
+// ── Init
+initUserInfo();
+loadAll();
+loadIncomingRequests();
+</script>
+</body>
+</html>
